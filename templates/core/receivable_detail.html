@@ -1,7 +1,110 @@
 {% extends "base.html" %}
+{% block title %}{{ receivable.reference }} • CanePay{% endblock %}
+
 {% block content %}
-<div class="page-head"><div><a class="back" href="{% url 'farmer_dashboard' %}">← Farmer dashboard</a><span class="eyebrow">VERIFIED CANE RECEIVABLE</span><h1>{{ receivable.reference }}</h1></div><span class="pill {{ receivable.status }}">{{ receivable.get_status_display }}</span></div>
-<div class="two-col"><div class="card"><h3>Transaction</h3><div class="detail-list"><div><span>Mill</span><b>{{ receivable.delivery.mill.name }}</b></div><div><span>Accepted weight</span><b>{{ receivable.delivery.accepted_weight_tonnes }} t</b></div><div><span>Quality score</span><b>{{ receivable.delivery.quality_score }}</b></div><div><span>Gross value</span><b>KES {{ receivable.delivery.gross_value|floatformat:0 }}</b></div><div><span>Deductions</span><b>KES {{ receivable.delivery.deductions|floatformat:0 }}</b></div><div class="total"><span>Amount due</span><b>KES {{ receivable.amount|floatformat:0 }}</b></div></div></div>
-<div class="card"><h3>Trust chain</h3><div class="trust"><div>✓ Farmer verified</div><div>✓ Delivery recorded</div><div>✓ Weight verified</div><div>✓ Quality recorded</div><div>{% if receivable.mill_acknowledged %}✓ Mill acknowledged obligation{% else %}○ Awaiting mill acknowledgement{% endif %}</div><div>{% if receivable.assignment %}✓ Receivable assigned to financier{% else %}○ Not financed{% endif %}</div></div></div></div>
-{% if offers %}<h2>Financing offers</h2><div class="grid">{% for o in offers %}<div class="card"><b>{{ o.financier.profile.organisation|default:o.financier.username }}</b><div class="big-money">KES {{ o.advance_amount|floatformat:0 }}</div><p>Get today</p><div class="detail-list"><div><span>Finance cost</span><b>KES {{ o.finance_cost|floatformat:0 }}</b></div><div><span>Settlement</span><b>KES {{ o.settlement_amount|floatformat:0 }}</b></div></div>{% if o.status == 'offered' %}<form method="post" action="{% url 'accept_offer' o.pk %}">{% csrf_token %}<button class="primary block">Accept offer</button></form>{% else %}<span class="pill {{ o.status }}">{{ o.get_status_display }}</span>{% endif %}</div>{% endfor %}</div>{% endif %}
+<a class="back-link" href="{% url 'farmer_dashboard' %}"><span>←</span> Back to farmer workspace</a>
+
+<section class="transaction-hero">
+  <div>
+    <div class="eyebrow">VERIFIED CANE RECEIVABLE</div>
+    <div class="transaction-title-row">
+      <h1>{{ receivable.reference }}</h1>
+      <span class="status-pill {{ receivable.status }}">{{ receivable.get_status_display }}</span>
+    </div>
+    <p>A traceable record connecting the cane delivery, mill obligation and any financing activity.</p>
+  </div>
+  <div class="transaction-amount">
+    <span>Amount due</span>
+    <strong><small>KES</small> {{ receivable.amount|floatformat:0 }}</strong>
+    <small>Due {{ receivable.due_date|date:"d M Y" }}</small>
+  </div>
+</section>
+
+<div class="detail-layout">
+  <section class="premium-card detail-card">
+    <div class="card-title-row">
+      <div>
+        <div class="eyebrow">TRANSACTION EVIDENCE</div>
+        <h2>Delivery economics</h2>
+      </div>
+      <span class="evidence-tag">Source-linked</span>
+    </div>
+
+    <div class="detail-list premium-details">
+      <div><span>Mill</span><strong>{{ receivable.delivery.mill.name }}</strong></div>
+      <div><span>Accepted weight</span><strong>{{ receivable.delivery.accepted_weight_tonnes }} t</strong></div>
+      <div><span>Quality score</span><strong>{{ receivable.delivery.quality_score|default:"—" }}</strong></div>
+      <div><span>Gross value</span><strong>KES {{ receivable.delivery.gross_value|floatformat:0 }}</strong></div>
+      <div><span>Deductions</span><strong>KES {{ receivable.delivery.deductions|floatformat:0 }}</strong></div>
+      <div class="detail-total"><span>Net amount due</span><strong>KES {{ receivable.amount|floatformat:0 }}</strong></div>
+    </div>
+  </section>
+
+  <section class="premium-card detail-card trust-card">
+    <div class="card-title-row">
+      <div>
+        <div class="eyebrow">TRUST CHAIN</div>
+        <h2>What has been verified?</h2>
+      </div>
+    </div>
+
+    <div class="trust-timeline">
+      <div class="timeline-item complete"><span class="timeline-dot">✓</span><div><strong>Farmer verified</strong><small>Identity linked to delivery record</small></div></div>
+      <div class="timeline-item complete"><span class="timeline-dot">✓</span><div><strong>Delivery recorded</strong><small>Cane delivery exists in the transaction trail</small></div></div>
+      <div class="timeline-item complete"><span class="timeline-dot">✓</span><div><strong>Weight verified</strong><small>Accepted tonnage recorded</small></div></div>
+      <div class="timeline-item complete"><span class="timeline-dot">✓</span><div><strong>Quality recorded</strong><small>Quality evidence attached to delivery economics</small></div></div>
+      <div class="timeline-item {% if receivable.mill_acknowledged %}complete{% else %}pending{% endif %}">
+        <span class="timeline-dot">{% if receivable.mill_acknowledged %}✓{% else %}•{% endif %}</span>
+        <div><strong>Mill obligation</strong><small>{% if receivable.mill_acknowledged %}Payment obligation acknowledged{% else %}Awaiting acknowledgement{% endif %}</small></div>
+      </div>
+      <div class="timeline-item {% if receivable.assignment %}complete{% else %}pending{% endif %}">
+        <span class="timeline-dot">{% if receivable.assignment %}✓{% else %}•{% endif %}</span>
+        <div><strong>Finance assignment</strong><small>{% if receivable.assignment %}Receivable assigned to financier{% else %}Not yet financed{% endif %}</small></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% if offers %}
+<div class="section-heading second-section">
+  <div>
+    <div class="eyebrow">FARMER CHOICE</div>
+    <h2>Financing offers</h2>
+  </div>
+  <p>Compare the cash available today with the finance cost and settlement amount.</p>
+</div>
+
+<div class="offer-grid">
+  {% for o in offers %}
+  <article class="premium-card offer-card">
+    <div class="offer-provider">
+      <div class="mini-avatar">{{ o.financier.profile.organisation|default:o.financier.username|first|upper }}</div>
+      <div>
+        <span>Financing partner</span>
+        <strong>{{ o.financier.profile.organisation|default:o.financier.username }}</strong>
+      </div>
+    </div>
+
+    <div class="money-block offer-money">
+      <span>Cash available now</span>
+      <strong><small>KES</small> {{ o.advance_amount|floatformat:0 }}</strong>
+    </div>
+
+    <div class="detail-list offer-details">
+      <div><span>Finance cost</span><strong>KES {{ o.finance_cost|floatformat:0 }}</strong></div>
+      <div><span>Settlement amount</span><strong>KES {{ o.settlement_amount|floatformat:0 }}</strong></div>
+    </div>
+
+    {% if o.status == 'offered' %}
+    <form method="post" action="{% url 'accept_offer' o.pk %}">
+      {% csrf_token %}
+      <button class="button button-primary full-button" type="submit">Accept this offer <span>→</span></button>
+    </form>
+    {% else %}
+    <span class="status-pill {{ o.status }}">{{ o.get_status_display }}</span>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

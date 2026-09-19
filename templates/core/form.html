@@ -1,5 +1,47 @@
 {% extends "base.html" %}
+{% block title %}{{ title }} • CanePay{% endblock %}
+
 {% block content %}
-<div class="page-head"><div><a class="back" href="javascript:history.back()">← Back</a><h1>{{ title }}</h1></div></div>
-<div class="card form-card"><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary" type="submit">{{ button }}</button></form></div>
+<a class="back-link" href="javascript:history.back()"><span>←</span> Back</a>
+
+<section class="form-page">
+  <div class="form-intro">
+    <div class="eyebrow">CANEPAY WORKFLOW</div>
+    <h1>{{ title }}</h1>
+    <p>Complete the required fields carefully. This action becomes part of the transaction record and audit trail.</p>
+
+    <div class="form-trust-note">
+      <span class="trust-note-icon">✓</span>
+      <div>
+        <strong>Structured evidence</strong>
+        <small>Values entered here feed the receivable workflow and should reflect source records.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="premium-card form-card">
+    <form method="post" class="premium-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="form-errors">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% for field in form %}
+      <div class="field-group {% if field.errors %}field-has-error{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<small class="field-help">{{ field.help_text|safe }}</small>{% endif %}
+        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
+      </div>
+      {% endfor %}
+
+      <button class="button button-primary form-submit" type="submit">
+        {{ button }} <span>→</span>
+      </button>
+    </form>
+  </div>
+</section>
 {% endblock %}

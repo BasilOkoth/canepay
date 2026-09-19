@@ -1,16 +1,116 @@
 {% extends "base.html" %}
 {% block title %}Sign in • CanePay{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+{% block main_class %}auth-main{% endblock %}
+
 {% block content %}
-<div class="auth-card">
-  <h1>Sign in to CanePay</h1>
-  <p class="muted">Role-based access for farmers, mills, financiers and regulators.</p>
-  <form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary" type="submit">Sign in</button></form>
-  <div class="demo-box">
-    <b>Demo accounts</b>
-    <div>Farmer: <code>farmer</code> / <code>Demo123!</code></div>
-    <div>Mill: <code>mill</code> / <code>Demo123!</code></div>
-    <div>Financier: <code>sacco</code> / <code>Demo123!</code></div>
-    <div>Regulator: <code>ksb</code> / <code>Demo123!</code></div>
+<section class="auth-layout">
+  <div class="auth-story">
+    <div class="story-badge">
+      <span class="story-badge-dot"></span>
+      AGRI-FINANCE INFRASTRUCTURE
+    </div>
+
+    <h1>Cane delivered.<br><span>Value verified.</span><br>Cash unlocked.</h1>
+
+    <p class="auth-lead">
+      CanePay turns verified sugarcane deliveries into transparent, financeable receivables —
+      giving farmers visibility, mills a clean obligation trail, and financiers better evidence for faster decisions.
+    </p>
+
+    <div class="trust-grid">
+      <div class="trust-item">
+        <span class="trust-number">01</span>
+        <div>
+          <strong>Verified delivery</strong>
+          <small>Weight, quality, mill and farmer records linked to one transaction.</small>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-number">02</span>
+        <div>
+          <strong>Digital obligation</strong>
+          <small>Mill acknowledgement creates a traceable receivable record.</small>
+        </div>
+      </div>
+      <div class="trust-item">
+        <span class="trust-number">03</span>
+        <div>
+          <strong>Finance-ready</strong>
+          <small>Consented receivables can be reviewed by participating financiers.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="story-proof">
+      <span class="proof-line"></span>
+      <span>Built for the sugar value chain — farmer to mill to financier to oversight.</span>
+    </div>
   </div>
-</div>
+
+  <div class="auth-panel-wrap">
+    <div class="auth-panel">
+      <div class="auth-panel-top">
+        <div class="panel-label">SECURE ACCESS</div>
+        <h2>Welcome to CanePay</h2>
+        <p>Sign in to your role-based workspace.</p>
+      </div>
+
+      {% if form.errors %}
+      <div class="auth-error">
+        <strong>Sign-in failed.</strong>
+        <span>Please check your username and password and try again.</span>
+      </div>
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+
+        <div class="field-group">
+          <label for="{{ form.username.id_for_label }}">Username</label>
+          {{ form.username }}
+        </div>
+
+        <div class="field-group">
+          <div class="field-label-row">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            <span>Protected access</span>
+          </div>
+          {{ form.password }}
+        </div>
+
+        {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button class="primary auth-submit" type="submit">
+          <span>Enter secure workspace</span>
+          <span class="button-arrow">→</span>
+        </button>
+      </form>
+
+      <div class="security-strip">
+        <span class="security-icon">✓</span>
+        <span>Role-based access • authenticated sessions • auditable actions</span>
+      </div>
+
+      <details class="demo-drawer">
+        <summary>
+          <span>Demo credentials</span>
+          <span class="demo-chevron">⌄</span>
+        </summary>
+        <div class="demo-grid">
+          <div><span>Farmer</span><code>farmer</code><code>Demo123!</code></div>
+          <div><span>Mill</span><code>mill</code><code>Demo123!</code></div>
+          <div><span>Financier</span><code>sacco</code><code>Demo123!</code></div>
+          <div><span>Regulator</span><code>ksb</code><code>Demo123!</code></div>
+        </div>
+      </details>
+    </div>
+
+    <p class="auth-footnote">
+      Pilot environment for demonstrating verified receivable workflows.
+    </p>
+  </div>
+</section>
 {% endblock %}

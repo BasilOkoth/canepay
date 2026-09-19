@@ -1,22 +1,77 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071d17">
   <title>{% block title %}CanePay{% endblock %}</title>
-  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
-<body>
-<header class="topbar">
-  <div class="brand"><span class="mark">C</span><div><b>CanePay</b><small>Verified cane. Faster cash.</small></div></div>
-  {% if user.is_authenticated %}
-  <div class="userbox"><span>{{ user.get_full_name|default:user.username }}</span><a href="/accounts/logout/">Logout</a></div>
-  {% endif %}
-</header>
-<main class="shell">
-  {% if messages %}{% for message in messages %}<div class="flash {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
-  {% block content %}{% endblock %}
-</main>
-<footer>Prototype for sugar-industry innovation • CanePay v0.1</footer>
+<body class="{% block body_class %}{% endblock %}">
+  <div class="page-glow page-glow-one"></div>
+  <div class="page-glow page-glow-two"></div>
+
+  <header class="app-header">
+    <div class="nav-shell">
+      <a class="brand" href="{% if user.is_authenticated %}/{% else %}/accounts/login/{% endif %}" aria-label="CanePay home">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="brand-copy">
+          <strong>CanePay</strong>
+          <small>Receivables infrastructure for sugar</small>
+        </span>
+      </a>
+
+      {% if user.is_authenticated %}
+      <div class="nav-actions">
+        <div class="role-chip">
+          <span class="role-dot"></span>
+          {{ user.profile.get_role_display|default:"Secure workspace" }}
+        </div>
+        <div class="user-identity">
+          <span class="avatar">{{ user.first_name|first|default:user.username|first|upper }}</span>
+          <span class="user-copy">
+            <strong>{{ user.get_full_name|default:user.username }}</strong>
+            <small>{{ user.profile.organisation|default:"CanePay account" }}</small>
+          </span>
+        </div>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="logout-button" type="submit" aria-label="Sign out">Sign out</button>
+        </form>
+      </div>
+      {% else %}
+      <div class="public-nav-note">
+        <span class="secure-dot"></span>
+        Secure pilot environment
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="app-main {% block main_class %}{% endblock %}">
+    {% if messages %}
+      <div class="flash-stack">
+        {% for message in messages %}
+          <div class="flash {{ message.tags }}">
+            <span class="flash-icon">✓</span>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-shell">
+      <span>CanePay</span>
+      <span class="footer-separator"></span>
+      <span>Verified cane → trusted receivable → faster access to finance</span>
+    </div>
+  </footer>
 </body>
 </html>

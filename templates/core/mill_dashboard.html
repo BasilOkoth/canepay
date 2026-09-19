@@ -1,12 +1,139 @@
 {% extends "base.html" %}
+{% block title %}Mill workspace • CanePay{% endblock %}
+
 {% block content %}
-<div class="page-head"><div><span class="eyebrow">MILL PORTAL</span><h1>Delivery & payment obligations</h1><p>Verify cane, acknowledge what is owed, and settle transparently.</p></div><a class="primary" href="{% url 'delivery_create' %}">+ Register delivery</a></div>
-<h2>Recent deliveries</h2>
-<div class="table-wrap"><table><thead><tr><th>Ref</th><th>Farmer</th><th>Mill</th><th>Weight</th><th>Quality</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>
-{% for d in deliveries %}<tr><td>{{ d.reference }}</td><td>{{ d.farmer.user.get_full_name|default:d.farmer.user.username }}</td><td>{{ d.mill.name }}</td><td>{{ d.accepted_weight_tonnes }} t</td><td>{{ d.quality_score|default:"—" }}</td><td>KES {{ d.amount_payable|floatformat:0 }}</td><td>{{ d.get_status_display }}</td><td>{% if d.status == 'pending' %}<form method="post" action="{% url 'verify_delivery' d.pk %}">{% csrf_token %}<button class="small">Verify</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="8">No deliveries.</td></tr>{% endfor %}
-</tbody></table></div>
-<h2>Receivables</h2>
-<div class="table-wrap"><table><thead><tr><th>Receivable</th><th>Farmer</th><th>Amount</th><th>Acknowledged</th><th>Status</th><th>Action</th></tr></thead><tbody>
-{% for r in receivables %}<tr><td>{{ r.reference }}</td><td>{{ r.delivery.farmer.user.get_full_name|default:r.delivery.farmer.user.username }}</td><td>KES {{ r.amount|floatformat:0 }}</td><td>{% if r.mill_acknowledged %}✓ Yes{% else %}No{% endif %}</td><td>{{ r.get_status_display }}</td><td>{% if not r.mill_acknowledged %}<form method="post" action="{% url 'acknowledge_receivable' r.pk %}">{% csrf_token %}<button class="small">Acknowledge obligation</button></form>{% elif r.status != 'settled' %}<form method="post" action="{% url 'settle_receivable' r.pk %}">{% csrf_token %}<button class="small dark">Record settlement</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="6">No receivables.</td></tr>{% endfor %}
-</tbody></table></div>
+<section class="workspace-hero">
+  <div>
+    <div class="eyebrow">MILL WORKSPACE</div>
+    <h1>Delivery and obligation control.</h1>
+    <p>Verify cane, establish what is payable, acknowledge the obligation and maintain a transparent settlement trail.</p>
+  </div>
+  <a class="button button-primary hero-button" href="{% url 'delivery_create' %}">
+    <span class="button-plus">+</span> Register delivery
+  </a>
+</section>
+
+<section class="metric-grid two-metrics">
+  <article class="metric-card">
+    <div class="metric-top"><span>Recent deliveries</span><span class="metric-code">DLV</span></div>
+    <strong>{{ deliveries|length }}</strong>
+    <small>Delivery records loaded in this workspace</small>
+  </article>
+  <article class="metric-card">
+    <div class="metric-top"><span>Receivables</span><span class="metric-code">REC</span></div>
+    <strong>{{ receivables|length }}</strong>
+    <small>Payment obligations tracked</small>
+  </article>
+</section>
+
+<div class="section-heading">
+  <div>
+    <div class="eyebrow">OPERATIONS</div>
+    <h2>Recent cane deliveries</h2>
+  </div>
+  <p>Verify delivered cane before a receivable can progress through the finance workflow.</p>
+</div>
+
+<div class="table-panel">
+  <div class="table-scroll">
+    <table class="premium-table">
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Farmer</th>
+          <th>Mill</th>
+          <th>Accepted</th>
+          <th>Quality</th>
+          <th>Payable</th>
+          <th>Status</th>
+          <th class="align-right">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for d in deliveries %}
+        <tr>
+          <td><strong class="table-reference">{{ d.reference }}</strong></td>
+          <td>{{ d.farmer.user.get_full_name|default:d.farmer.user.username }}</td>
+          <td>{{ d.mill.name }}</td>
+          <td>{{ d.accepted_weight_tonnes }} t</td>
+          <td>{{ d.quality_score|default:"—" }}</td>
+          <td><strong>KES {{ d.amount_payable|floatformat:0 }}</strong></td>
+          <td><span class="status-pill {{ d.status }}">{{ d.get_status_display }}</span></td>
+          <td class="align-right">
+            {% if d.status == 'pending' %}
+            <form method="post" action="{% url 'verify_delivery' d.pk %}">
+              {% csrf_token %}
+              <button class="table-action" type="submit">Verify delivery</button>
+            </form>
+            {% else %}
+            <span class="action-complete">✓ Complete</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="8"><div class="table-empty">No delivery records yet.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section-heading second-section">
+  <div>
+    <div class="eyebrow">PAYMENT OBLIGATIONS</div>
+    <h2>Receivables</h2>
+  </div>
+  <p>Acknowledgement makes the obligation visible to the farmer and eligible for the next workflow stage.</p>
+</div>
+
+<div class="table-panel">
+  <div class="table-scroll">
+    <table class="premium-table">
+      <thead>
+        <tr>
+          <th>Receivable</th>
+          <th>Farmer</th>
+          <th>Amount</th>
+          <th>Mill acknowledgement</th>
+          <th>Status</th>
+          <th class="align-right">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in receivables %}
+        <tr>
+          <td><strong class="table-reference">{{ r.reference }}</strong></td>
+          <td>{{ r.delivery.farmer.user.get_full_name|default:r.delivery.farmer.user.username }}</td>
+          <td><strong>KES {{ r.amount|floatformat:0 }}</strong></td>
+          <td>
+            {% if r.mill_acknowledged %}
+              <span class="evidence-yes">✓ Acknowledged</span>
+            {% else %}
+              <span class="evidence-wait">Awaiting</span>
+            {% endif %}
+          </td>
+          <td><span class="status-pill {{ r.status }}">{{ r.get_status_display }}</span></td>
+          <td class="align-right">
+            {% if not r.mill_acknowledged %}
+            <form method="post" action="{% url 'acknowledge_receivable' r.pk %}">
+              {% csrf_token %}
+              <button class="table-action" type="submit">Acknowledge obligation</button>
+            </form>
+            {% elif r.status != 'settled' %}
+            <form method="post" action="{% url 'settle_receivable' r.pk %}">
+              {% csrf_token %}
+              <button class="table-action dark-action" type="submit">Record settlement</button>
+            </form>
+            {% else %}
+              <span class="action-complete">✓ Settled</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6"><div class="table-empty">No receivables yet.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

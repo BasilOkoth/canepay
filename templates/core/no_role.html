@@ -1,1 +1,13 @@
-{% extends "base.html" %}{% block content %}<div class="card"><h2>No CanePay role assigned</h2><p>Ask an administrator to assign this account a role.</p></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Access not configured • CanePay{% endblock %}
+{% block content %}
+<section class="state-page">
+  <div class="premium-card state-card">
+    <div class="state-icon">CP</div>
+    <div class="eyebrow">ACCOUNT SETUP REQUIRED</div>
+    <h1>No CanePay role assigned</h1>
+    <p>This account is authenticated, but it has not yet been assigned a farmer, mill, financier or oversight role.</p>
+    <div class="state-note">Ask a CanePay administrator to assign the correct role before continuing.</div>
+  </div>
+</section>
+{% endblock %}

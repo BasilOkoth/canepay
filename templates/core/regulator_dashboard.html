@@ -1,7 +1,99 @@
 {% extends "base.html" %}
+{% block title %}Oversight workspace • CanePay{% endblock %}
+
 {% block content %}
-<div class="page-head"><div><span class="eyebrow">REGULATOR / KSB VIEW</span><h1>Industry payment transparency</h1><p>Aggregated oversight without exposing unnecessary farmer banking data.</p></div></div>
-<div class="stats"><div><span>Total receivables</span><b>KES {{ totals.total|default:0|floatformat:0 }}</b><small>{{ totals.count }} records</small></div><div><span>Outstanding</span><b>KES {{ unpaid.total|default:0|floatformat:0 }}</b><small>{{ unpaid.count }} records</small></div><div><span>Financed</span><b>KES {{ financed.total|default:0|floatformat:0 }}</b><small>{{ financed.count }} records</small></div></div>
-<h2>Mill risk view</h2><div class="grid">{% for mill in mills %}<div class="card"><b>{{ mill.name }}</b><p>{{ mill.county }}</p><span class="pill {{ mill.payment_risk }}">{{ mill.get_payment_risk_display }} payment risk</span></div>{% endfor %}</div>
-<h2>Audit trail</h2><div class="table-wrap"><table><thead><tr><th>Time</th><th>Actor</th><th>Event</th><th>Description</th></tr></thead><tbody>{% for e in events %}<tr><td>{{ e.created_at|date:"d M H:i" }}</td><td>{{ e.actor.username|default:"System" }}</td><td>{{ e.event_type }}</td><td>{{ e.description }}</td></tr>{% empty %}<tr><td colspan="4">No events.</td></tr>{% endfor %}</tbody></table></div>
+<section class="workspace-hero">
+  <div>
+    <div class="eyebrow">REGULATORY / OVERSIGHT WORKSPACE</div>
+    <h1>See payment risk before it becomes invisible.</h1>
+    <p>Industry-level visibility into verified receivables, outstanding obligations and financing activity — without exposing unnecessary farmer banking data.</p>
+  </div>
+  <div class="hero-status oversight-status">
+    <span class="status-pulse"></span>
+    <div>
+      <strong>Live oversight</strong>
+      <small>audit-backed records</small>
+    </div>
+  </div>
+</section>
+
+<section class="metric-grid regulator-metrics">
+  <article class="metric-card featured-metric">
+    <div class="metric-top"><span>Total receivables</span><span class="metric-code">ALL</span></div>
+    <strong>KES {{ totals.total|default:0|floatformat:0 }}</strong>
+    <small>{{ totals.count }} recorded obligations</small>
+  </article>
+  <article class="metric-card">
+    <div class="metric-top"><span>Outstanding</span><span class="metric-code warning-code">OUT</span></div>
+    <strong>KES {{ unpaid.total|default:0|floatformat:0 }}</strong>
+    <small>{{ unpaid.count }} not yet settled</small>
+  </article>
+  <article class="metric-card">
+    <div class="metric-top"><span>Financed</span><span class="metric-code">FIN</span></div>
+    <strong>KES {{ financed.total|default:0|floatformat:0 }}</strong>
+    <small>{{ financed.count }} financed receivables</small>
+  </article>
+</section>
+
+<div class="section-heading">
+  <div>
+    <div class="eyebrow">MILL SIGNALS</div>
+    <h2>Payment risk view</h2>
+  </div>
+  <p>A simple operating signal for prioritising review. It is not a credit rating.</p>
+</div>
+
+<div class="risk-grid">
+  {% for mill in mills %}
+  <article class="risk-card premium-card">
+    <div class="risk-card-top">
+      <div class="mill-monogram">{{ mill.name|first|upper }}</div>
+      <span class="status-pill {{ mill.payment_risk }}">{{ mill.get_payment_risk_display }} risk</span>
+    </div>
+    <h3>{{ mill.name }}</h3>
+    <p>{{ mill.county|default:"Location not set" }}</p>
+    <div class="risk-foot">
+      <span>Mill record</span>
+      <strong>{% if mill.verified %}Verified ✓{% else %}Pending{% endif %}</strong>
+    </div>
+  </article>
+  {% empty %}
+  <div class="empty-state premium-card"><h3>No mill records</h3><p>Registered mills will appear here.</p></div>
+  {% endfor %}
+</div>
+
+<div class="section-heading second-section">
+  <div>
+    <div class="eyebrow">AUDITABILITY</div>
+    <h2>Transaction event trail</h2>
+  </div>
+  <p>Key actions are recorded with actor, timestamp and event description.</p>
+</div>
+
+<div class="table-panel audit-panel">
+  <div class="table-scroll">
+    <table class="premium-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Actor</th>
+          <th>Event</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for e in events %}
+        <tr>
+          <td class="nowrap">{{ e.created_at|date:"d M Y, H:i" }}</td>
+          <td><strong>{{ e.actor.username|default:"System" }}</strong></td>
+          <td><span class="event-chip">{{ e.event_type }}</span></td>
+          <td>{{ e.description }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4"><div class="table-empty">No audit events yet.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
