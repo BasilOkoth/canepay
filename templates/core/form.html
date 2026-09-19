@@ -1,47 +1,28 @@
 {% extends "base.html" %}
-{% block title %}{{ title }} • CanePay{% endblock %}
-
+{% block title %}{{ title }} • Miwa360{% endblock %}
 {% block content %}
-<a class="back-link" href="javascript:history.back()"><span>←</span> Back</a>
-
-<section class="form-page">
-  <div class="form-intro">
-    <div class="eyebrow">CANEPAY WORKFLOW</div>
+<a class="back-link" href="javascript:history.back()">← Back</a>
+<div class="form-layout">
+  <section class="form-intro">
+    <span class="eyebrow">{{ eyebrow|default:"MIWA360 WORKFLOW" }}</span>
     <h1>{{ title }}</h1>
-    <p>Complete the required fields carefully. This action becomes part of the transaction record and audit trail.</p>
-
-    <div class="form-trust-note">
-      <span class="trust-note-icon">✓</span>
-      <div>
-        <strong>Structured evidence</strong>
-        <small>Values entered here feed the receivable workflow and should reflect source records.</small>
-      </div>
-    </div>
-  </div>
-
-  <div class="premium-card form-card">
+    <p>{{ description|default:"Complete the required information carefully." }}</p>
+    <div class="evidence-note"><b>✓</b><div><strong>Evidence first</strong><small>Actions in Miwa360 become part of the transaction and audit trail.</small></div></div>
+  </section>
+  <section class="form-card">
     <form method="post" class="premium-form">
       {% csrf_token %}
-
-      {% if form.non_field_errors %}
-      <div class="form-errors">
-        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
-      </div>
-      {% endif %}
-
+      {% if form.non_field_errors %}<div class="form-alert">{{ form.non_field_errors }}</div>{% endif %}
       {% for field in form %}
-      <div class="field-group {% if field.errors %}field-has-error{% endif %}">
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      <label class="field">
+        <span>{{ field.label }}</span>
         {{ field }}
-        {% if field.help_text %}<small class="field-help">{{ field.help_text|safe }}</small>{% endif %}
-        {% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}
-      </div>
+        {% if field.help_text %}<small class="help">{{ field.help_text|safe }}</small>{% endif %}
+        {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
+      </label>
       {% endfor %}
-
-      <button class="button button-primary form-submit" type="submit">
-        {{ button }} <span>→</span>
-      </button>
+      <button class="primary-button form-submit" type="submit">{{ button }} <span>↗</span></button>
     </form>
-  </div>
-</section>
+  </section>
+</div>
 {% endblock %}

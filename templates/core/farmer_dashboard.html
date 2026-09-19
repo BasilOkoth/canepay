@@ -1,92 +1,62 @@
 {% extends "base.html" %}
-{% block title %}Farmer workspace • CanePay{% endblock %}
-
+{% block title %}Farmer • Miwa360{% endblock %}
 {% block content %}
-<section class="workspace-hero">
+<section class="hero dark-hero">
   <div>
-    <div class="eyebrow">FARMER WORKSPACE</div>
-    <h1>Welcome, {{ farmer.user.first_name|default:farmer.user.username }}.</h1>
-    <p>Your verified cane deliveries, amounts due and financing options — in one trusted record.</p>
+    <span class="eyebrow lime">FARMER PAYMENT HOME</span>
+    <h1>Your cane is delivered.<br><em>See what you are owed.</em></h1>
+    <p>Follow every verified mill obligation, payment date and early-payment option from one place.</p>
   </div>
-  <div class="hero-status">
-    <span class="status-pulse"></span>
-    <div>
-      <strong>Verified farmer</strong>
-      <small>{{ farmer.farmer_number }}</small>
-    </div>
+  <div class="identity-card">
+    <span>VERIFIED FARMER</span>
+    <strong>{{ farmer.user.get_full_name|default:farmer.user.username }}</strong>
+    <small>{{ farmer.farmer_number }}</small>
+    {% if farmer.ksb_grower_id %}<small>{{ farmer.ksb_grower_id }}</small>{% endif %}
+    <div><i></i> Active identity record</div>
   </div>
 </section>
 
-<section class="metric-grid">
-  <article class="metric-card">
-    <div class="metric-top"><span>Farmer number</span><span class="metric-code">ID</span></div>
-    <strong>{{ farmer.farmer_number }}</strong>
-    <small>Verified identity reference</small>
-  </article>
-  <article class="metric-card">
-    <div class="metric-top"><span>County</span><span class="metric-code">LOC</span></div>
-    <strong>{{ farmer.county|default:"—" }}</strong>
-    <small>Primary farmer location</small>
-  </article>
-  <article class="metric-card">
-    <div class="metric-top"><span>Receivables</span><span class="metric-code">REC</span></div>
-    <strong>{{ receivables|length }}</strong>
-    <small>Recorded cane-to-cash transactions</small>
-  </article>
+<section class="metrics three">
+  <article><span>Mill obligations outstanding</span><strong>KES {{ metrics.amount_outstanding|floatformat:0 }}</strong><small>Verified and unpaid</small></article>
+  <article class="accent"><span>Available to finance now</span><strong>KES {{ metrics.available_now|floatformat:0 }}</strong><small>Mill acknowledged</small></article>
+  <article><span>Already financed</span><strong>KES {{ metrics.financed|floatformat:0 }}</strong><small>Locked to a selected financier</small></article>
 </section>
 
-<div class="section-heading">
-  <div>
-    <div class="eyebrow">CANE-TO-CASH PIPELINE</div>
-    <h2>Your receivables</h2>
+<section class="section" id="receivables">
+  <div class="section-title">
+    <div><span class="eyebrow">YOUR CANE PAYMENTS</span><h2>Verified mill obligations</h2></div>
+    <p>Each card starts with a cane delivery and follows the money until settlement.</p>
   </div>
-  <p>Each record carries the evidence needed to follow the payment obligation from delivery to settlement.</p>
-</div>
 
-<div class="receivable-grid">
-  {% for r in receivables %}
-  <article class="receivable-card premium-card">
-    <div class="receivable-card-head">
-      <div>
-        <span class="record-label">RECEIVABLE</span>
-        <h3>{{ r.reference }}</h3>
+  <div class="card-grid">
+    {% for r in receivables %}
+    <article class="receivable-card">
+      <div class="card-top">
+        <div><span class="tiny-label">RECEIVABLE</span><h3>{{ r.reference }}</h3></div>
+        <span class="status {{ r.status }}">{{ r.get_status_display }}</span>
       </div>
-      <span class="status-pill {{ r.status }}">{{ r.get_status_display }}</span>
-    </div>
-
-    <div class="money-block">
-      <span>Amount due</span>
-      <strong><small>KES</small> {{ r.amount|floatformat:0 }}</strong>
-    </div>
-
-    <div class="record-facts">
-      <div><span>Accepted cane</span><strong>{{ r.delivery.accepted_weight_tonnes }} t</strong></div>
-      <div><span>Mill</span><strong>{{ r.delivery.mill.name }}</strong></div>
-      <div><span>Due date</span><strong>{{ r.due_date|date:"d M Y" }}</strong></div>
-    </div>
-
-    <div class="trust-chain compact">
-      <span class="done">Delivery</span>
-      <span class="done">Weight</span>
-      <span class="done">Quality</span>
-      <span class="{% if r.mill_acknowledged %}done{% else %}waiting{% endif %}">Mill obligation</span>
-    </div>
-
-    <div class="card-actions">
-      <a class="button button-secondary" href="{% url 'receivable_detail' r.pk %}">View transaction</a>
-      {% if r.status == 'verified' %}
-      <a class="button button-primary" href="{% url 'request_finance' r.pk %}">
-        Explore financing <span>→</span>
-      </a>
-      {% endif %}
-    </div>
-  </article>
-  {% empty %}
-  <div class="empty-state premium-card">
-    <div class="empty-icon">CP</div>
-    <h3>No receivables yet</h3>
-    <p>Your verified delivery records will appear here once a mill creates and acknowledges them.</p>
+      <div class="amount"><span>The mill owes you</span><strong><small>KES</small> {{ r.amount|floatformat:0 }}</strong></div>
+      <div class="facts">
+        <div><span>Cane accepted</span><strong>{{ r.delivery.accepted_weight_tonnes }} t</strong></div>
+        <div><span>Miller</span><strong>{{ r.delivery.mill.name }}</strong></div>
+        <div><span>Payment due</span><strong>{{ r.due_date|date:"d M Y" }}</strong></div>
+      </div>
+      <div class="proof-row">
+        <span class="done">Delivery</span><span class="done">Weight</span><span class="done">Quality</span>
+        <span class="{% if r.mill_acknowledged %}done{% else %}waiting{% endif %}">Mill obligation</span>
+      </div>
+      <div class="card-actions">
+        <a class="secondary-button" href="{% url 'receivable_detail' r.pk %}">View evidence</a>
+        {% if r.status == "verified" %}
+        <a class="primary-button" href="{% url 'request_finance' r.pk %}">Get paid sooner <span>↗</span></a>
+        {% elif r.status == "finance_requested" %}
+        <a class="primary-button muted-action" href="{% url 'receivable_detail' r.pk %}">View offers</a>
+        {% endif %}
+      </div>
+    </article>
+    {% empty %}
+    <div class="empty-state"><b>No verified payments yet</b><p>Once a mill verifies and acknowledges a cane delivery, it will appear here.</p></div>
+    {% endfor %}
   </div>
-  {% endfor %}
-</div>
+</section>
 {% endblock %}

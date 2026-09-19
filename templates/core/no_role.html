@@ -1,13 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Access not configured • CanePay{% endblock %}
+{% block title %}Account setup • Miwa360{% endblock %}
 {% block content %}
-<section class="state-page">
-  <div class="premium-card state-card">
-    <div class="state-icon">CP</div>
-    <div class="eyebrow">ACCOUNT SETUP REQUIRED</div>
-    <h1>No CanePay role assigned</h1>
-    <p>This account is authenticated, but it has not yet been assigned a farmer, mill, financier or oversight role.</p>
-    <div class="state-note">Ask a CanePay administrator to assign the correct role before continuing.</div>
-  </div>
-</section>
+<div class="empty-state standalone"><b>Workspace role not assigned</b><p>Your login works, but this account still needs a farmer, miller, bank / SACCO or oversight role.</p></div>
 {% endblock %}

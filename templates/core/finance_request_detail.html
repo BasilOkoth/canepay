@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Review {{ fr.receivable.reference }} • Miwa360{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'financier_dashboard' %}">← Back to opportunities</a>
+
+<section class="detail-hero">
+  <div>
+    <span class="eyebrow lime">FINANCING EVIDENCE PACK</span>
+    <div class="detail-heading"><h1>{{ fr.receivable.reference }}</h1><span class="verified-badge">✓ Mill acknowledged</span></div>
+    <p>Review the farmer, delivery and payment obligation before making an offer.</p>
+  </div>
+  <div class="detail-amount"><span>Mill obligation</span><strong><small>KES</small> {{ fr.receivable.amount|floatformat:0 }}</strong><small>Due {{ fr.receivable.due_date|date:"d M Y" }}</small></div>
+</section>
+
+<div class="two-column">
+  <article class="detail-card">
+    <span class="eyebrow">FARMER & DELIVERY</span><h2>Source evidence</h2>
+    <div class="detail-list">
+      <div><span>Farmer</span><strong>{{ fr.farmer.user.get_full_name|default:fr.farmer.user.username }}</strong></div>
+      <div><span>Farmer number</span><strong>{{ fr.farmer.farmer_number }}</strong></div>
+      <div><span>Miller</span><strong>{{ fr.receivable.delivery.mill.name }}</strong></div>
+      <div><span>Delivery reference</span><strong>{{ fr.receivable.delivery.reference }}</strong></div>
+      <div><span>Delivery ticket</span><strong>{{ fr.receivable.delivery.delivery_ticket_number|default:"—" }}</strong></div>
+      <div><span>Source system</span><strong>{{ fr.receivable.delivery.get_source_system_display }}</strong></div>
+      <div><span>Accepted cane</span><strong>{{ fr.receivable.delivery.accepted_weight_tonnes }} t</strong></div>
+      <div><span>Quality score</span><strong>{{ fr.receivable.delivery.quality_score|default:"—" }}</strong></div>
+    </div>
+  </article>
+
+  <article class="detail-card">
+    <span class="eyebrow">FINANCING CONTROL</span><h2>Why this can be reviewed</h2>
+    <div class="timeline">
+      <div class="timeline-row done"><i>✓</i><div><strong>Farmer verified</strong><small>Known Miwa360 farmer record</small></div></div>
+      <div class="timeline-row done"><i>✓</i><div><strong>Delivery verified</strong><small>Accepted cane evidence recorded</small></div></div>
+      <div class="timeline-row done"><i>✓</i><div><strong>Mill obligation acknowledged</strong><small>KES {{ fr.receivable.amount|floatformat:0 }} due</small></div></div>
+      <div class="timeline-row done"><i>✓</i><div><strong>Farmer consent recorded</strong><small>Financing review authorised</small></div></div>
+      <div class="timeline-row done"><i>✓</i><div><strong>No active assignment</strong><small>Receivable is not already financed</small></div></div>
+    </div>
+    <div class="finance-callout"><span>Farmer requests</span><strong>KES {{ fr.requested_amount|floatformat:0 }}</strong></div>
+    <a class="primary-button full" href="{% url 'make_offer' fr.pk %}">Make financing offer <span>↗</span></a>
+  </article>
+</div>
+{% endblock %}

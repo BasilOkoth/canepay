@@ -1,125 +1,58 @@
 {% extends "base.html" %}
-{% block title %}Financier workspace • CanePay{% endblock %}
-
+{% block title %}Bank / SACCO • Miwa360{% endblock %}
 {% block content %}
-<section class="workspace-hero">
+<section class="hero dark-hero">
   <div>
-    <div class="eyebrow">FINANCIER WORKSPACE</div>
-    <h1>Finance evidence, not uncertainty.</h1>
-    <p>Review only farmer-authorised, mill-acknowledged cane receivables with a visible trust chain.</p>
+    <span class="eyebrow lime">BANK / SACCO WORKSPACE</span>
+    <h1>Finance a verified<br><em>mill obligation.</em></h1>
+    <p>Review farmer-authorised cane receivables with delivery, weight, quality and mill acknowledgement behind them.</p>
   </div>
-  <div class="hero-status finance-status">
-    <span class="status-pulse"></span>
-    <div>
-      <strong>{{ requests|length }} open</strong>
-      <small>finance opportunities</small>
-    </div>
+  <div class="hero-number"><strong>{{ metrics.open_requests }}</strong><span>open financing requests</span></div>
+</section>
+
+<section class="metrics three">
+  <article><span>Open opportunities</span><strong>{{ metrics.open_requests }}</strong><small>Farmer-authorised requests</small></article>
+  <article class="accent"><span>Farmer advances committed</span><strong>KES {{ metrics.committed|floatformat:0 }}</strong><small>Accepted or disbursed</small></article>
+  <article><span>Expected mill settlement</span><strong>KES {{ metrics.awaiting_settlement|floatformat:0 }}</strong><small>Open financed receivables</small></article>
+</section>
+
+<section class="section" id="opportunities">
+  <div class="section-title"><div><span class="eyebrow">FINANCING OPPORTUNITIES</span><h2>Verified receivables</h2></div><p>The farmer has consented to share these records. Assigned receivables disappear automatically.</p></div>
+  <div class="card-grid">
+    {% for fr in requests %}
+    <article class="receivable-card financier-card">
+      <div class="card-top"><div><span class="tiny-label">MILL OBLIGATION</span><h3>{{ fr.receivable.reference }}</h3></div><span class="verified-badge">✓ Verified</span></div>
+      <div class="amount"><span>Verified receivable</span><strong><small>KES</small> {{ fr.receivable.amount|floatformat:0 }}</strong></div>
+      <div class="party-row">
+        <span class="avatar light">{{ fr.farmer.user.first_name|first|default:fr.farmer.user.username|first|upper }}</span>
+        <div><strong>{{ fr.farmer.user.get_full_name|default:fr.farmer.user.username }}</strong><small>{{ fr.receivable.delivery.mill.name }}</small></div>
+      </div>
+      <div class="request-box"><span>Farmer requests now</span><strong>KES {{ fr.requested_amount|floatformat:0 }}</strong></div>
+      <div class="proof-row five"><span class="done">Farmer</span><span class="done">Delivery</span><span class="done">Weight</span><span class="done">Quality</span><span class="done">Mill obligation</span></div>
+      <div class="card-actions">
+        <a class="secondary-button" href="{% url 'finance_request_detail' fr.pk %}">Review evidence</a>
+        <a class="primary-button" href="{% url 'make_offer' fr.pk %}">Make offer <span>↗</span></a>
+      </div>
+    </article>
+    {% empty %}<div class="empty-state"><b>No open requests</b><p>New verified farmer requests will appear here.</p></div>{% endfor %}
   </div>
 </section>
 
-<div class="section-heading">
-  <div>
-    <div class="eyebrow">VERIFIED OPPORTUNITIES</div>
-    <h2>Receivables marketplace</h2>
-  </div>
-  <p>Every opportunity below has farmer consent and a mill-acknowledged payment obligation.</p>
-</div>
-
-<div class="opportunity-grid">
-  {% for fr in requests %}
-  <article class="opportunity-card premium-card">
-    <div class="opportunity-top">
-      <div>
-        <span class="record-label">VERIFIED RECEIVABLE</span>
-        <h3>{{ fr.receivable.reference }}</h3>
-      </div>
-      <span class="verified-badge"><span>✓</span> Verified</span>
-    </div>
-
-    <div class="money-block">
-      <span>Receivable value</span>
-      <strong><small>KES</small> {{ fr.receivable.amount|floatformat:0 }}</strong>
-    </div>
-
-    <div class="borrower-strip">
-      <div class="mini-avatar">{{ fr.farmer.user.first_name|first|default:fr.farmer.user.username|first|upper }}</div>
-      <div>
-        <strong>{{ fr.farmer.user.get_full_name|default:fr.farmer.user.username }}</strong>
-        <small>{{ fr.receivable.delivery.mill.name }}</small>
-      </div>
-    </div>
-
-    <div class="request-box">
-      <span>Farmer financing request</span>
-      <strong>KES {{ fr.requested_amount|floatformat:0 }}</strong>
-    </div>
-
-    <div class="trust-chain compact five">
-      <span class="done">Farmer</span>
-      <span class="done">Delivery</span>
-      <span class="done">Weight</span>
-      <span class="done">Quality</span>
-      <span class="done">Mill obligation</span>
-    </div>
-
-    <a class="button button-primary full-button" href="{% url 'make_offer' fr.pk %}">
-      Review & make offer <span>→</span>
-    </a>
-  </article>
-  {% empty %}
-  <div class="empty-state premium-card">
-    <div class="empty-icon">CP</div>
-    <h3>No open requests</h3>
-    <p>New farmer-authorised financing requests will appear here when verified receivables are available.</p>
-  </div>
-  {% endfor %}
-</div>
-
-<div class="section-heading second-section">
-  <div>
-    <div class="eyebrow">PORTFOLIO ACTIVITY</div>
-    <h2>Your offers</h2>
-  </div>
-  <p>Track the status of every offer from submission through acceptance and disbursement.</p>
-</div>
-
-<div class="table-panel">
-  <div class="table-scroll">
-    <table class="premium-table">
-      <thead>
-        <tr>
-          <th>Receivable</th>
-          <th>Advance</th>
-          <th>Finance cost</th>
-          <th>Settlement</th>
-          <th>Status</th>
-          <th class="align-right">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for o in my_offers %}
-        <tr>
-          <td><strong class="table-reference">{{ o.request.receivable.reference }}</strong></td>
-          <td>KES {{ o.advance_amount|floatformat:0 }}</td>
-          <td>KES {{ o.finance_cost|floatformat:0 }}</td>
-          <td><strong>KES {{ o.settlement_amount|floatformat:0 }}</strong></td>
-          <td><span class="status-pill {{ o.status }}">{{ o.get_status_display }}</span></td>
-          <td class="align-right">
-            {% if o.status == 'accepted' %}
-            <form method="post" action="{% url 'mark_disbursed' o.pk %}">
-              {% csrf_token %}
-              <button class="table-action" type="submit">Mark disbursed</button>
-            </form>
-            {% else %}
-              <span class="action-complete">Recorded</span>
-            {% endif %}
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6"><div class="table-empty">No offers submitted yet.</div></td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+<section class="section spaced" id="portfolio">
+  <div class="section-title"><div><span class="eyebrow">YOUR PORTFOLIO</span><h2>Offers and disbursements</h2></div><p>Track each offer through farmer acceptance, disbursement and mill settlement.</p></div>
+  <div class="table-card"><div class="table-scroll"><table>
+    <thead><tr><th>Receivable</th><th>Farmer</th><th>Advance</th><th>Finance cost</th><th>Mill settlement</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for o in my_offers %}
+    <tr>
+      <td><strong class="reference">{{ o.request.receivable.reference }}</strong></td>
+      <td>{{ o.request.farmer.user.get_full_name|default:o.request.farmer.user.username }}</td>
+      <td>KES {{ o.advance_amount|floatformat:0 }}</td><td>KES {{ o.finance_cost|floatformat:0 }}</td>
+      <td><strong>KES {{ o.settlement_amount|floatformat:0 }}</strong></td><td><span class="status {{ o.status }}">{{ o.get_status_display }}</span></td>
+      <td class="right">{% if o.status == "accepted" %}<form method="post" action="{% url 'mark_disbursed' o.pk %}">{% csrf_token %}<button class="mini-button">Mark farmer paid</button></form>{% else %}<span class="neutral-copy">Recorded</span>{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td class="table-empty" colspan="7">No offers yet.</td></tr>{% endfor %}
+    </tbody>
+  </table></div></div>
+</section>
 {% endblock %}

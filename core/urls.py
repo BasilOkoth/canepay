@@ -13,8 +13,11 @@ urlpatterns = [
     path("mill/receivable/<int:pk>/acknowledge/", views.acknowledge_receivable, name="acknowledge_receivable"),
     path("mill/receivable/<int:pk>/settle/", views.settle_receivable, name="settle_receivable"),
     path("financier/", views.financier_dashboard, name="financier_dashboard"),
+    path("financier/request/<int:pk>/", views.finance_request_detail, name="finance_request_detail"),
     path("financier/request/<int:pk>/offer/", views.make_offer, name="make_offer"),
     path("financier/offer/<int:pk>/disbursed/", views.mark_disbursed, name="mark_disbursed"),
-    path("regulator/", views.regulator_dashboard, name="regulator_dashboard"),
-    path("api/receivables/<str:reference>/", views.api_receivable, name="api_receivable"),
+    path("oversight/", views.regulator_dashboard, name="regulator_dashboard"),
+    path("oversight/integrations/", views.integration_hub, name="integration_hub"),
+    path("api/v1/receivables/<str:reference>/", views.api_receivable, name="api_receivable"),
+    path("api/v1/integrations/deliveries/", views.ingest_delivery, name="ingest_delivery"),
 ]

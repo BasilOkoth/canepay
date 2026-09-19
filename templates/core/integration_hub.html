@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Integrations • Miwa360{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'regulator_dashboard' %}">← Back to oversight</a>
+
+<section class="hero dark-hero compact-hero">
+  <div>
+    <span class="eyebrow lime">INTEROPERABILITY LAYER</span>
+    <h1>Connect existing systems.<br><em>Do not replace them.</em></h1>
+    <p>Miwa360 can ingest verified delivery evidence and expose finance / settlement status through controlled APIs.</p>
+  </div>
+  <div class="api-state {% if ingest_enabled %}enabled{% endif %}">
+    <i></i><div><strong>{% if ingest_enabled %}Ingestion enabled{% else %}API key not configured{% endif %}</strong><small>/api/v1/integrations/deliveries/</small></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-title"><div><span class="eyebrow">SYSTEM CONNECTIONS</span><h2>Integration registry</h2></div><p>Status describes Miwa360 configuration, not an official live connection unless marked Connected.</p></div>
+  <div class="connector-grid">
+    {% for c in connections %}
+    <article class="connector-card">
+      <div class="card-top"><span class="connector-dot {{ c.status }}"></span><span class="status {{ c.status }}">{{ c.get_status_display }}</span></div>
+      <h3>{{ c.name }}</h3><p>{{ c.data_scope|default:"No data scope recorded." }}</p>
+      <div class="connector-meta"><span>{{ c.connection_type }}</span><strong>{% if c.enabled %}Enabled{% else %}Disabled{% endif %}</strong></div>
+    </article>
+    {% empty %}<div class="empty-state">No connectors configured.</div>{% endfor %}
+  </div>
+</section>
+
+<section class="section spaced">
+  <div class="section-title"><div><span class="eyebrow">DATA CONTRACT</span><h2>Delivery ingestion</h2></div><p>A controlled path for mill / industry systems to pass approved delivery evidence into Miwa360.</p></div>
+  <div class="api-card">
+    <div class="api-header"><span>POST</span><code>/api/v1/integrations/deliveries/</code></div>
+    <pre>{
+  "source_system": "mill_api",
+  "external_reference": "MILL-DEL-91827",
+  "farmer_number": "FRM-DEMO-001",
+  "farm_code": "FARM-DEMO-001",
+  "mill_code": "DML",
+  "accepted_weight_tonnes": "18.00",
+  "quality_score": "15.10",
+  "price_per_tonne": "5750.00",
+  "mill_approved": true,
+  "obligation_acknowledged": true
+}</pre>
+    <div class="api-note">Unknown farmers, farms or mills are rejected rather than silently created.</div>
+  </div>
+</section>
+
+<section class="section spaced">
+  <div class="section-title"><div><span class="eyebrow">INTEGRATION AUDIT</span><h2>Recent API events</h2></div></div>
+  <div class="table-card"><div class="table-scroll"><table>
+    <thead><tr><th>Time</th><th>Connection</th><th>Direction</th><th>External ref</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody>
+    {% for e in events %}
+    <tr><td>{{ e.created_at|date:"d M Y, H:i" }}</td><td>{{ e.connection.name|default:"Unmapped API" }}</td><td>{{ e.get_direction_display }}</td><td>{{ e.external_reference|default:"—" }}</td><td><span class="status {{ e.status }}">{{ e.get_status_display }}</span></td><td>{{ e.detail }}</td></tr>
+    {% empty %}<tr><td class="table-empty" colspan="6">No integration events yet.</td></tr>{% endfor %}
+    </tbody>
+  </table></div></div>
+</section>
+{% endblock %}

@@ -1,139 +1,59 @@
 {% extends "base.html" %}
-{% block title %}Mill workspace • CanePay{% endblock %}
-
+{% block title %}Miller • Miwa360{% endblock %}
 {% block content %}
-<section class="workspace-hero">
+<section class="hero dark-hero">
   <div>
-    <div class="eyebrow">MILL WORKSPACE</div>
-    <h1>Delivery and obligation control.</h1>
-    <p>Verify cane, establish what is payable, acknowledge the obligation and maintain a transparent settlement trail.</p>
+    <span class="eyebrow lime">MILLER OPERATIONS</span>
+    <h1>Verify cane.<br><em>Make the obligation clear.</em></h1>
+    <p>Turn accepted deliveries into auditable amounts payable to farmers and reconcile settlement later.</p>
   </div>
-  <a class="button button-primary hero-button" href="{% url 'delivery_create' %}">
-    <span class="button-plus">+</span> Register delivery
-  </a>
+  <a class="hero-cta" href="{% url 'delivery_create' %}"><span>+</span> Register delivery</a>
 </section>
 
-<section class="metric-grid two-metrics">
-  <article class="metric-card">
-    <div class="metric-top"><span>Recent deliveries</span><span class="metric-code">DLV</span></div>
-    <strong>{{ deliveries|length }}</strong>
-    <small>Delivery records loaded in this workspace</small>
-  </article>
-  <article class="metric-card">
-    <div class="metric-top"><span>Receivables</span><span class="metric-code">REC</span></div>
-    <strong>{{ receivables|length }}</strong>
-    <small>Payment obligations tracked</small>
-  </article>
+<section class="metrics three">
+  <article><span>Outstanding farmer obligations</span><strong>KES {{ metrics.outstanding|floatformat:0 }}</strong><small>Not yet settled</small></article>
+  <article class="accent"><span>Financier-linked obligations</span><strong>KES {{ metrics.finance_linked|floatformat:0 }}</strong><small>Settlement direction matters</small></article>
+  <article><span>Waiting for verification</span><strong>{{ metrics.pending_verification }}</strong><small>Delivery records</small></article>
 </section>
 
-<div class="section-heading">
-  <div>
-    <div class="eyebrow">OPERATIONS</div>
-    <h2>Recent cane deliveries</h2>
-  </div>
-  <p>Verify delivered cane before a receivable can progress through the finance workflow.</p>
-</div>
+<section class="section" id="deliveries">
+  <div class="section-title"><div><span class="eyebrow">DELIVERY CONTROL</span><h2>Recent cane deliveries</h2></div><p>Confirm source evidence before a farmer can use the delivery for financing.</p></div>
+  <div class="table-card"><div class="table-scroll"><table>
+    <thead><tr><th>Delivery</th><th>Farmer</th><th>Accepted</th><th>Quality</th><th>Net payable</th><th>Source</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for d in deliveries %}
+    <tr>
+      <td><strong class="reference">{{ d.reference }}</strong><small class="subcell">{{ d.delivery_ticket_number|default:"No ticket" }}</small></td>
+      <td>{{ d.farmer.user.get_full_name|default:d.farmer.user.username }}</td>
+      <td>{{ d.accepted_weight_tonnes }} t</td><td>{{ d.quality_score|default:"—" }}</td>
+      <td><strong>KES {{ d.amount_payable|floatformat:0 }}</strong></td><td>{{ d.get_source_system_display }}</td>
+      <td><span class="status {{ d.status }}">{{ d.get_status_display }}</span></td>
+      <td class="right">{% if d.status == "pending" %}<form method="post" action="{% url 'verify_delivery' d.pk %}">{% csrf_token %}<button class="mini-button">Verify delivery</button></form>{% else %}<span class="done-copy">✓ Verified</span>{% endif %}</td>
+    </tr>
+    {% empty %}<tr><td class="table-empty" colspan="8">No delivery records yet.</td></tr>{% endfor %}
+    </tbody>
+  </table></div></div>
+</section>
 
-<div class="table-panel">
-  <div class="table-scroll">
-    <table class="premium-table">
-      <thead>
-        <tr>
-          <th>Reference</th>
-          <th>Farmer</th>
-          <th>Mill</th>
-          <th>Accepted</th>
-          <th>Quality</th>
-          <th>Payable</th>
-          <th>Status</th>
-          <th class="align-right">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for d in deliveries %}
-        <tr>
-          <td><strong class="table-reference">{{ d.reference }}</strong></td>
-          <td>{{ d.farmer.user.get_full_name|default:d.farmer.user.username }}</td>
-          <td>{{ d.mill.name }}</td>
-          <td>{{ d.accepted_weight_tonnes }} t</td>
-          <td>{{ d.quality_score|default:"—" }}</td>
-          <td><strong>KES {{ d.amount_payable|floatformat:0 }}</strong></td>
-          <td><span class="status-pill {{ d.status }}">{{ d.get_status_display }}</span></td>
-          <td class="align-right">
-            {% if d.status == 'pending' %}
-            <form method="post" action="{% url 'verify_delivery' d.pk %}">
-              {% csrf_token %}
-              <button class="table-action" type="submit">Verify delivery</button>
-            </form>
-            {% else %}
-            <span class="action-complete">✓ Complete</span>
-            {% endif %}
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="8"><div class="table-empty">No delivery records yet.</div></td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div class="section-heading second-section">
-  <div>
-    <div class="eyebrow">PAYMENT OBLIGATIONS</div>
-    <h2>Receivables</h2>
-  </div>
-  <p>Acknowledgement makes the obligation visible to the farmer and eligible for the next workflow stage.</p>
-</div>
-
-<div class="table-panel">
-  <div class="table-scroll">
-    <table class="premium-table">
-      <thead>
-        <tr>
-          <th>Receivable</th>
-          <th>Farmer</th>
-          <th>Amount</th>
-          <th>Mill acknowledgement</th>
-          <th>Status</th>
-          <th class="align-right">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for r in receivables %}
-        <tr>
-          <td><strong class="table-reference">{{ r.reference }}</strong></td>
-          <td>{{ r.delivery.farmer.user.get_full_name|default:r.delivery.farmer.user.username }}</td>
-          <td><strong>KES {{ r.amount|floatformat:0 }}</strong></td>
-          <td>
-            {% if r.mill_acknowledged %}
-              <span class="evidence-yes">✓ Acknowledged</span>
-            {% else %}
-              <span class="evidence-wait">Awaiting</span>
-            {% endif %}
-          </td>
-          <td><span class="status-pill {{ r.status }}">{{ r.get_status_display }}</span></td>
-          <td class="align-right">
-            {% if not r.mill_acknowledged %}
-            <form method="post" action="{% url 'acknowledge_receivable' r.pk %}">
-              {% csrf_token %}
-              <button class="table-action" type="submit">Acknowledge obligation</button>
-            </form>
-            {% elif r.status != 'settled' %}
-            <form method="post" action="{% url 'settle_receivable' r.pk %}">
-              {% csrf_token %}
-              <button class="table-action dark-action" type="submit">Record settlement</button>
-            </form>
-            {% else %}
-              <span class="action-complete">✓ Settled</span>
-            {% endif %}
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6"><div class="table-empty">No receivables yet.</div></td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+<section class="section spaced" id="receivables">
+  <div class="section-title"><div><span class="eyebrow">PAYMENT OBLIGATIONS</span><h2>What the mill owes</h2></div><p>Acknowledgement lets the farmer choose to wait or seek early payment.</p></div>
+  <div class="table-card"><div class="table-scroll"><table>
+    <thead><tr><th>Receivable</th><th>Farmer</th><th>Amount</th><th>Due</th><th>Finance state</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for r in receivables %}
+    <tr>
+      <td><strong class="reference">{{ r.reference }}</strong></td><td>{{ r.delivery.farmer.user.get_full_name|default:r.delivery.farmer.user.username }}</td>
+      <td><strong>KES {{ r.amount|floatformat:0 }}</strong></td><td>{{ r.due_date|date:"d M Y" }}</td>
+      <td>{% if r.assignment and r.assignment.active %}<span class="finance-locked">Locked to financier</span>{% else %}<span class="neutral-copy">Not assigned</span>{% endif %}</td>
+      <td><span class="status {{ r.status }}">{{ r.get_status_display }}</span></td>
+      <td class="right">
+        {% if not r.mill_acknowledged %}<form method="post" action="{% url 'acknowledge_receivable' r.pk %}">{% csrf_token %}<button class="mini-button">Acknowledge amount</button></form>
+        {% elif r.status != "settled" %}<form method="post" action="{% url 'settle_receivable' r.pk %}">{% csrf_token %}<button class="mini-button dark">Record settlement</button></form>
+        {% else %}<span class="done-copy">✓ Closed</span>{% endif %}
+      </td>
+    </tr>
+    {% empty %}<tr><td class="table-empty" colspan="7">No receivables yet.</td></tr>{% endfor %}
+    </tbody>
+  </table></div></div>
+</section>
 {% endblock %}

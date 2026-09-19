@@ -1,63 +1,51 @@
-# CanePay MVP
+# Miwa360
 
-CanePay is a role-based prototype for converting verified sugarcane deliveries into transparent, financeable receivables.
+**Miwa360 connects sugarcane farmers, millers and financial institutions so verified cane deliveries can unlock earlier payment.**
 
-## What this prototype demonstrates
+A farmer delivers cane. The mill verifies the delivery and acknowledges the amount payable. Miwa360 turns that verified obligation into a finance-ready receivable. With the farmer's consent, participating banks and SACCOs can review the evidence and offer an advance. When the mill later pays, Miwa360 records settlement to the financier and any residual due to the farmer.
 
-1. A mill registers a cane delivery.
-2. The mill verifies weight, quality and payable amount.
-3. The mill digitally acknowledges the payment obligation.
-4. CanePay creates a verified receivable.
-5. The farmer can request early financing and consent to data sharing.
-6. A bank/SACCO can review the verified receivable and make an offer.
-7. The farmer accepts one offer and the receivable is assigned to that financier.
-8. The financier records disbursement.
-9. The mill later records settlement and the transaction closes.
-10. A regulator view shows aggregate payment and audit information.
+## Roles
+- Farmer — sees verified deliveries, amount owed, due date, requests early payment and compares offers.
+- Miller — registers/imports deliveries, verifies cane, acknowledges obligations and records settlement.
+- Bank / SACCO — reviews farmer-authorised receivables, makes offers and records disbursement.
+- Oversight — sees obligations, financing, mill signals, audit events and integration status.
 
-## Demo users
+## Interoperability
+Miwa360 is designed to sit between existing sugar-industry systems rather than replace them.
 
-After running `python manage.py seed_demo`:
+Included:
+- shared-key JSON delivery ingestion endpoint
+- source-system / external-reference fields
+- integration registry and event log
+- receivable verification API
+- audit trail
+- duplicate-financing lock through one active receivable assignment
 
-- Farmer: `farmer` / `Demo123!`
-- Mill: `mill` / `Demo123!`
-- Financier: `sacco` / `Demo123!`
-- Regulator: `ksb` / `Demo123!`
+### Delivery ingestion
+POST `/api/v1/integrations/deliveries/`
+Header: `X-MIWA360-KEY: <MIWA360_INGEST_KEY>`
 
-## Run locally
+Unknown farmers, farms or mills are rejected rather than silently created.
 
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-python manage.py makemigrations core
-python manage.py migrate
-python manage.py seed_demo
-python manage.py runserver
-```
+## Render
+Build:
+`pip install -r requirements.txt && python manage.py migrate --fake-initial && python manage.py collectstatic --noinput`
 
-Open http://127.0.0.1:8000/
+Start:
+`gunicorn canepay.wsgi:application`
 
-## Deploy to Render
+Environment:
+- SECRET_KEY
+- DEBUG=False
+- ALLOWED_HOSTS=.onrender.com,localhost,127.0.0.1
+- DATABASE_URL
+- optional MIWA360_INGEST_KEY
 
-The repository includes `render.yaml` and `Procfile`.
+After first deployment:
+`python manage.py seed_demo`
 
-1. Push the whole folder to GitHub.
-2. In Render choose **New > Blueprint**.
-3. Select the GitHub repository.
-4. Render creates the web service and PostgreSQL database.
-5. After first deployment, open the Render Shell and run:
-   `python manage.py seed_demo`
-
-## Integration-ready endpoint
-
-Authenticated users can verify a receivable at:
-
-`/api/receivables/CP-000001/`
-
-The JSON response contains validity, amount, mill, financing status and due date. This is a placeholder for future SugarVISTA/QBCPS/mill/bank integrations.
-
-## Important prototype limitation
-
-This is a demonstration system, not a production lending platform. A real rollout needs legal review for receivable assignment, KYC/AML, data protection, lending regulation, mill payment instructions, API security, audit controls and financial-partner agreements.
+Demo accounts (all explicitly demo):
+- farmer / Demo123!
+- mill / Demo123!
+- sacco / Demo123!
+- oversight / Demo123!
