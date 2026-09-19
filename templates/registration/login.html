@@ -1,56 +1,113 @@
 {% extends "base.html" %}
 {% load static %}
+
 {% block title %}Sign in • Miwa360{% endblock %}
 {% block body_class %}login-page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
 {% block public_content %}
-<div class="login-layout">
-  <section class="login-visual">
-    <div class="login-brand-row">
-      <a class="brand public" href="/accounts/login/">
-        <img src="{% static 'img/miwa360-mark.svg' %}" alt="">
-        <span>Miwa<strong>360</strong></span>
-      </a>
-      <span class="pilot-chip">SUGAR VALUE-CHAIN FINANCE</span>
-    </div>
+<div class="login-layout-premium">
+  <section class="login-story-panel">
+    <div class="login-story-inner">
+      <div class="login-brand-row-premium">
+        <a class="brand brand-login" href="/accounts/login/">
+          <img src="{% static 'img/miwa360-mark.svg' %}" alt="Miwa360">
+          <span>Miwa<strong>360</strong></span>
+        </a>
+        <span class="industry-label">SUGAR VALUE-CHAIN FINANCE</span>
+      </div>
 
-    <div class="login-message">
-      <span class="eyebrow lime">FROM CANE DELIVERY TO CASH</span>
-      <h1>Verified cane should not leave a farmer <em>waiting for money.</em></h1>
-      <p>Miwa360 connects farmers, millers and banks / SACCOs so an approved cane delivery can become trusted evidence for earlier payment.</p>
+      <div class="login-story-content">
+        <span class="login-kicker">FROM CANE DELIVERY TO CASH</span>
 
-      <div class="flow">
-        <div class="flow-step"><b>01</b><span><strong>Farmer delivers</strong><small>Cane reaches the mill</small></span></div>
-        <i></i>
-        <div class="flow-step"><b>02</b><span><strong>Mill verifies</strong><small>Weight, quality, amount due</small></span></div>
-        <i></i>
-        <div class="flow-step"><b>03</b><span><strong>Bank / SACCO pays</strong><small>Farmer receives an advance</small></span></div>
-        <i></i>
-        <div class="flow-step"><b>04</b><span><strong>Mill settles</strong><small>Financier is repaid later</small></span></div>
+        <h1>Verified cane should not leave a farmer <em>waiting for money.</em></h1>
+
+        <p class="login-lead">
+          Miwa360 connects farmers, millers and banks / SACCOs so an approved cane delivery
+          can become trusted evidence for earlier payment.
+        </p>
+
+        <div class="journey-grid">
+          <article class="journey-step">
+            <span class="journey-no">01</span>
+            <div><strong>Farmer delivers</strong><small>Cane reaches the mill.</small></div>
+          </article>
+          <article class="journey-step">
+            <span class="journey-no">02</span>
+            <div><strong>Mill verifies</strong><small>Weight, quality and amount due are confirmed.</small></div>
+          </article>
+          <article class="journey-step">
+            <span class="journey-no">03</span>
+            <div><strong>Bank / SACCO pays</strong><small>The farmer receives an advance against the verified obligation.</small></div>
+          </article>
+          <article class="journey-step">
+            <span class="journey-no">04</span>
+            <div><strong>Mill settles</strong><small>The financier is repaid when the mill settles the obligation.</small></div>
+          </article>
+        </div>
+
+        <div class="transaction-trail">
+          <span class="trail-dot"></span>
+          <span>One transaction trail</span>
+          <span class="trail-arrow">Farmer → Miller → Financier → Settlement</span>
+        </div>
+      </div>
+
+      <div class="login-story-footer">
+        Verified delivery evidence · controlled financing · auditable settlement
       </div>
     </div>
-
-    <div class="login-foot">One transaction trail · Farmer → Miller → Financier → Settlement</div>
   </section>
 
-  <section class="login-form-side">
-    <div class="login-box">
-      <div class="secure-label"><i></i> SECURE WORKSPACE</div>
+  <section class="login-access-panel">
+    <div class="login-access-card">
+      <div class="secure-label-premium"><span class="secure-dot"></span> SECURE WORKSPACE</div>
       <h2>Welcome to Miwa360</h2>
-      <p>Use the account assigned to your role in the cane payment workflow.</p>
+      <p class="access-copy">Sign in with the account assigned to your role in the cane payment workflow.</p>
 
-      {% if form.errors %}<div class="form-alert">The username or password is incorrect.</div>{% endif %}
+      {% if form.errors %}
+      <div class="form-alert-premium">The username or password is incorrect.</div>
+      {% endif %}
 
-      <form method="post" class="login-form">
+      <form method="post" class="login-form-premium">
         {% csrf_token %}
-        <label>Username{{ form.username }}</label>
-        <label>Password{{ form.password }}</label>
+        <label class="login-field">
+          <span>Username</span>
+          {{ form.username }}
+        </label>
+
+        <label class="login-field">
+          <span>Password</span>
+          <div class="password-wrap">
+            {{ form.password }}
+            <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false">
+              <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/>
+                <circle cx="12" cy="12" r="2.8"/>
+              </svg>
+              <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 3l18 18"/>
+                <path d="M10.6 6.2A10.9 10.9 0 0 1 12 6c6 0 9.5 6 9.5 6a17.6 17.6 0 0 1-3.2 3.8"/>
+                <path d="M6.2 6.2C3.9 7.8 2.5 12 2.5 12S6 18 12 18c1.8 0 3.3-.5 4.6-1.2"/>
+              </svg>
+            </button>
+          </div>
+        </label>
+
         {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-        <button class="primary-button login-submit" type="submit">Enter workspace <span>↗</span></button>
+
+        <button class="login-primary-btn" type="submit">
+          <span>Enter workspace</span>
+          <span class="login-btn-icon">↗</span>
+        </button>
       </form>
 
-      <details class="demo">
-        <summary>Demo access <span>+</span></summary>
-        <div class="demo-grid">
+      <details class="demo-access-premium">
+        <summary><span>Demo access</span><span class="demo-plus">+</span></summary>
+        <div class="demo-grid-premium">
           <div><b>Farmer</b><code>farmer</code><code>Demo123!</code></div>
           <div><b>Miller</b><code>mill</code><code>Demo123!</code></div>
           <div><b>Bank / SACCO</b><code>sacco</code><code>Demo123!</code></div>
@@ -58,8 +115,26 @@
         </div>
       </details>
 
-      <div class="security-note">Role-based access · auditable actions · duplicate-financing lock</div>
+      <div class="login-security-note">Role-based access · auditable actions · duplicate-financing lock</div>
     </div>
   </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const toggle = document.getElementById("passwordToggle");
+  const password = document.getElementById("id_password");
+  if (!toggle || !password) return;
+
+  toggle.addEventListener("click", function () {
+    const isVisible = password.type === "text";
+    password.type = isVisible ? "password" : "text";
+    toggle.classList.toggle("is-visible", !isVisible);
+    toggle.setAttribute("aria-pressed", String(!isVisible));
+    toggle.setAttribute("aria-label", isVisible ? "Show password" : "Hide password");
+  });
+})();
+</script>
 {% endblock %}

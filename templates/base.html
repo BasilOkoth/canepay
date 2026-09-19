@@ -8,6 +8,7 @@
   <title>{% block title %}Miwa360{% endblock %}</title>
   <link rel="icon" href="{% static 'img/miwa360-mark.svg' %}" type="image/svg+xml">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block extra_css %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
 {% if user.is_authenticated %}
@@ -78,5 +79,7 @@
 {% else %}
   {% block public_content %}{% endblock %}
 {% endif %}
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>
