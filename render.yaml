@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: canepay
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput
+    startCommand: gunicorn canepay.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: canepay-db
+          property: connectionString
+
+databases:
+  - name: canepay-db
+    databaseName: canepay
+    user: canepay
+    plan: free

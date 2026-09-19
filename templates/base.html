@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}CanePay{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="mark">C</span><div><b>CanePay</b><small>Verified cane. Faster cash.</small></div></div>
+  {% if user.is_authenticated %}
+  <div class="userbox"><span>{{ user.get_full_name|default:user.username }}</span><a href="/accounts/logout/">Logout</a></div>
+  {% endif %}
+</header>
+<main class="shell">
+  {% if messages %}{% for message in messages %}<div class="flash {{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Prototype for sugar-industry innovation • CanePay v0.1</footer>
+</body>
+</html>

@@ -1,0 +1,20 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.home, name="home"),
+    path("farmer/", views.farmer_dashboard, name="farmer_dashboard"),
+    path("farmer/receivable/<int:pk>/", views.receivable_detail, name="receivable_detail"),
+    path("farmer/receivable/<int:pk>/finance/", views.request_finance, name="request_finance"),
+    path("farmer/offer/<int:pk>/accept/", views.accept_offer, name="accept_offer"),
+    path("mill/", views.mill_dashboard, name="mill_dashboard"),
+    path("mill/delivery/new/", views.delivery_create, name="delivery_create"),
+    path("mill/delivery/<int:pk>/verify/", views.verify_delivery, name="verify_delivery"),
+    path("mill/receivable/<int:pk>/acknowledge/", views.acknowledge_receivable, name="acknowledge_receivable"),
+    path("mill/receivable/<int:pk>/settle/", views.settle_receivable, name="settle_receivable"),
+    path("financier/", views.financier_dashboard, name="financier_dashboard"),
+    path("financier/request/<int:pk>/offer/", views.make_offer, name="make_offer"),
+    path("financier/offer/<int:pk>/disbursed/", views.mark_disbursed, name="mark_disbursed"),
+    path("regulator/", views.regulator_dashboard, name="regulator_dashboard"),
+    path("api/receivables/<str:reference>/", views.api_receivable, name="api_receivable"),
+]

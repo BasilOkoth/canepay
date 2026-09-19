@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">MILL PORTAL</span><h1>Delivery & payment obligations</h1><p>Verify cane, acknowledge what is owed, and settle transparently.</p></div><a class="primary" href="{% url 'delivery_create' %}">+ Register delivery</a></div>
+<h2>Recent deliveries</h2>
+<div class="table-wrap"><table><thead><tr><th>Ref</th><th>Farmer</th><th>Mill</th><th>Weight</th><th>Quality</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>
+{% for d in deliveries %}<tr><td>{{ d.reference }}</td><td>{{ d.farmer.user.get_full_name|default:d.farmer.user.username }}</td><td>{{ d.mill.name }}</td><td>{{ d.accepted_weight_tonnes }} t</td><td>{{ d.quality_score|default:"—" }}</td><td>KES {{ d.amount_payable|floatformat:0 }}</td><td>{{ d.get_status_display }}</td><td>{% if d.status == 'pending' %}<form method="post" action="{% url 'verify_delivery' d.pk %}">{% csrf_token %}<button class="small">Verify</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="8">No deliveries.</td></tr>{% endfor %}
+</tbody></table></div>
+<h2>Receivables</h2>
+<div class="table-wrap"><table><thead><tr><th>Receivable</th><th>Farmer</th><th>Amount</th><th>Acknowledged</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for r in receivables %}<tr><td>{{ r.reference }}</td><td>{{ r.delivery.farmer.user.get_full_name|default:r.delivery.farmer.user.username }}</td><td>KES {{ r.amount|floatformat:0 }}</td><td>{% if r.mill_acknowledged %}✓ Yes{% else %}No{% endif %}</td><td>{{ r.get_status_display }}</td><td>{% if not r.mill_acknowledged %}<form method="post" action="{% url 'acknowledge_receivable' r.pk %}">{% csrf_token %}<button class="small">Acknowledge obligation</button></form>{% elif r.status != 'settled' %}<form method="post" action="{% url 'settle_receivable' r.pk %}">{% csrf_token %}<button class="small dark">Record settlement</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="6">No receivables.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

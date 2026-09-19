@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">FINANCIER PORTAL</span><h1>Verified receivables marketplace</h1><p>Finance only farmer-authorised, mill-acknowledged cane receivables.</p></div></div>
+<h2>Available opportunities</h2>
+<div class="grid">
+{% for fr in requests %}<div class="card"><div class="row between"><b>{{ fr.receivable.reference }}</b><span class="verified-mini">VERIFIED</span></div><div class="big-money">KES {{ fr.receivable.amount|floatformat:0 }}</div><p><b>{{ fr.farmer.user.get_full_name|default:fr.farmer.user.username }}</b> • {{ fr.receivable.delivery.mill.name }}</p><div class="checks"><span>✓ Farmer</span><span>✓ Delivery</span><span>✓ Weight</span><span>✓ Quality</span><span>✓ Mill obligation</span></div><p class="muted">Farmer requests KES {{ fr.requested_amount|floatformat:0 }}</p><a class="primary block" href="{% url 'make_offer' fr.pk %}">Make financing offer</a></div>{% empty %}<div class="card">No open financing requests.</div>{% endfor %}
+</div>
+<h2>Your offers</h2>
+<div class="table-wrap"><table><thead><tr><th>Receivable</th><th>Advance</th><th>Cost</th><th>Settlement</th><th>Status</th><th></th></tr></thead><tbody>{% for o in my_offers %}<tr><td>{{ o.request.receivable.reference }}</td><td>KES {{ o.advance_amount|floatformat:0 }}</td><td>KES {{ o.finance_cost|floatformat:0 }}</td><td>KES {{ o.settlement_amount|floatformat:0 }}</td><td>{{ o.get_status_display }}</td><td>{% if o.status == 'accepted' %}<form method="post" action="{% url 'mark_disbursed' o.pk %}">{% csrf_token %}<button class="small">Mark disbursed</button></form>{% endif %}</td></tr>{% empty %}<tr><td colspan="6">No offers yet.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

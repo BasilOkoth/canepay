@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head"><div><span class="eyebrow">FARMER PORTAL</span><h1>Hello, {{ farmer.user.first_name|default:farmer.user.username }}</h1><p>Track every cane delivery, amount due and finance option.</p></div><div class="verified">✓ Farmer verified</div></div>
+<div class="stats"><div><span>Farmer no.</span><b>{{ farmer.farmer_number }}</b></div><div><span>County</span><b>{{ farmer.county }}</b></div><div><span>Deliveries</span><b>{{ receivables|length }}</b></div></div>
+<h2>Your cane-to-cash records</h2>
+<div class="grid">
+{% for r in receivables %}
+<div class="card receivable-card">
+  <div class="row between"><b>{{ r.reference }}</b><span class="pill {{ r.status }}">{{ r.get_status_display }}</span></div>
+  <div class="big-money">KES {{ r.amount|floatformat:0 }}</div>
+  <div class="meta"><span>{{ r.delivery.accepted_weight_tonnes }} t</span><span>{{ r.delivery.mill.name }}</span><span>Due {{ r.due_date }}</span></div>
+  <div class="checks"><span>✓ Delivery</span><span>✓ Weight</span><span>✓ Quality</span>{% if r.mill_acknowledged %}<span>✓ Mill acknowledgement</span>{% endif %}</div>
+  <a class="secondary" href="{% url 'receivable_detail' r.pk %}">View transaction</a>
+  {% if r.status == 'verified' %}<a class="primary block" href="{% url 'request_finance' r.pk %}">Receive money now</a>{% endif %}
+</div>
+{% empty %}<div class="card"><p>No receivables yet.</p></div>{% endfor %}
+</div>
+{% endblock %}
