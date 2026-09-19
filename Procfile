@@ -1,1 +1,1 @@
-web: gunicorn canepay.wsgi:application
+web: bash start.sh
