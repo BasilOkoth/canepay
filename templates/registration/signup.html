@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create account • Miwa360{% endblock %}
+{% block body_class %}login-page signup-page{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/login.css' %}">{% endblock %}
+
+{% block public_content %}
+<div class="signup-shell">
+  <aside class="signup-story">
+    <a class="brand brand-login" href="{% url 'login' %}"><img src="{% static 'img/miwa360-mark.svg' %}" alt="Miwa360"><span>Miwa<strong>360</strong></span></a>
+    <div>
+      <span class="login-kicker">JOIN THE FINANCING NETWORK</span>
+      <h1>Create your <em>Miwa360 workspace.</em></h1>
+      <p>Farmers can activate immediately. Miller and bank/SACCO accounts are verified before institutional financing data becomes available.</p>
+      <div class="signup-trust-grid">
+        <div><b>01</b><strong>Verified identity</strong><small>Every account is tied to a defined role.</small></div>
+        <div><b>02</b><strong>Controlled access</strong><small>Institutions require verification before sensitive records are exposed.</small></div>
+        <div><b>03</b><strong>Farmer consent</strong><small>Financing evidence is shared only for authorised requests.</small></div>
+      </div>
+    </div>
+    <small class="signup-foot">Oversight accounts are invitation-only.</small>
+  </aside>
+
+  <main class="signup-panel">
+    <div class="signup-card">
+      <a class="back-login" href="{% url 'login' %}">← Back to sign in</a>
+      <div class="secure-label-premium"><span class="secure-dot"></span> ACCOUNT ONBOARDING</div>
+      <h2>Create account</h2>
+      <p class="access-copy">Use your real details. Fields shown will adapt to the role you select.</p>
+
+      {% if form.non_field_errors %}<div class="form-alert-premium">{{ form.non_field_errors|striptags }}</div>{% endif %}
+
+      <form method="post" class="signup-form" novalidate>
+        {% csrf_token %}
+        <div class="form-grid two">
+          <label class="login-field"><span>First name</span>{{ form.first_name }}{% for e in form.first_name.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+          <label class="login-field"><span>Last name</span>{{ form.last_name }}{% for e in form.last_name.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+        </div>
+        <div class="form-grid two">
+          <label class="login-field"><span>Email</span>{{ form.email }}{% for e in form.email.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+          <label class="login-field"><span>Phone</span>{{ form.phone }}{% for e in form.phone.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+        </div>
+        <div class="form-grid two">
+          <label class="login-field"><span>Username</span>{{ form.username }}{% for e in form.username.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+          <label class="login-field"><span>Account type</span>{{ form.role }}{% for e in form.role.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+        </div>
+
+        <div id="farmerFields" class="conditional-panel">
+          <div class="conditional-heading"><strong>Farmer identity</strong><small>Used to create your financing profile.</small></div>
+          <div class="form-grid two">
+            <label class="login-field"><span>National ID / passport</span>{{ form.national_id }}{% for e in form.national_id.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+            <label class="login-field"><span>Farmer / grower number</span>{{ form.farmer_number }}{% for e in form.farmer_number.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+          </div>
+          <label class="login-field"><span>County</span>{{ form.county }}{% for e in form.county.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+        </div>
+
+        <div id="institutionFields" class="conditional-panel">
+          <div class="conditional-heading"><strong>Institution verification</strong><small>Miller and financier workspaces are activated after organisation verification.</small></div>
+          <label class="login-field"><span>Organisation</span>{{ form.organisation }}{% for e in form.organisation.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+        </div>
+
+        <div class="form-grid two">
+          <label class="login-field"><span>Password</span>{{ form.password1 }}{% for e in form.password1.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+          <label class="login-field"><span>Confirm password</span>{{ form.password2 }}{% for e in form.password2.errors %}<small class="field-error">{{ e }}</small>{% endfor %}</label>
+        </div>
+
+        <div class="signup-notice"><span>✓</span><p>By creating an account, you acknowledge that financing decisions remain with participating regulated financial institutions.</p></div>
+        <button class="login-primary-btn" type="submit"><span>Create secure account</span><span class="login-btn-icon">↗</span></button>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const role = document.getElementById("id_role");
+  const farmer = document.getElementById("farmerFields");
+  const institution = document.getElementById("institutionFields");
+  function sync() {
+    const isFarmer = !role || role.value === "farmer";
+    farmer.hidden = !isFarmer;
+    institution.hidden = isFarmer;
+  }
+  if (role) role.addEventListener("change", sync);
+  sync();
+})();
+</script>
+{% endblock %}

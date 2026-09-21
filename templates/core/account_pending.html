@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Account verification • Miwa360{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/login.css' %}">{% endblock %}
+
+{% block content %}
+<section class="pending-shell">
+  <div class="pending-card">
+    <div class="pending-icon">✓</div>
+    {% if profile.account_status == "suspended" %}
+      <span class="eyebrow">ACCOUNT REVIEW</span>
+      <h1>This workspace is temporarily unavailable.</h1>
+      <p>Your account has been paused. Please contact the Miwa360 administrator before attempting institutional transactions.</p>
+    {% else %}
+      <span class="eyebrow">INSTITUTION VERIFICATION</span>
+      <h1>Your account is created.</h1>
+      <p><strong>{{ profile.organisation }}</strong> is awaiting verification before institutional financing records become available.</p>
+      <div class="pending-steps">
+        <div class="done"><b>1</b><span><strong>Account created</strong><small>Your credentials are working.</small></span></div>
+        <div class="active"><b>2</b><span><strong>Organisation verification</strong><small>Confirming the mill / bank / SACCO identity.</small></span></div>
+        <div><b>3</b><span><strong>Workspace activated</strong><small>Role-specific financing tools become available.</small></span></div>
+      </div>
+    {% endif %}
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="secondary-auth-btn" type="submit">Sign out</button></form>
+  </div>
+</section>
+{% endblock %}

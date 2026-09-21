@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
+
 class Profile(models.Model):
     ROLE_CHOICES = [
         ("farmer", "Farmer"),
@@ -10,12 +11,20 @@ class Profile(models.Model):
         ("financier", "Bank / SACCO"),
         ("regulator", "Oversight"),
     ]
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("pending", "Pending verification"),
+        ("suspended", "Suspended"),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     organisation = models.CharField(max_length=160, blank=True)
     phone = models.CharField(max_length=30, blank=True)
+    account_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", db_index=True)
+
     def __str__(self):
         return f"{self.user.username} ({self.get_role_display()})"
+
 
 class Farmer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -24,8 +33,10 @@ class Farmer(models.Model):
     ksb_grower_id = models.CharField(max_length=80, blank=True, db_index=True)
     county = models.CharField(max_length=80, blank=True)
     verified = models.BooleanField(default=True)
+
     def __str__(self):
         return f"{self.user.get_full_name() or self.user.username} – {self.farmer_number}"
+
 
 class Mill(models.Model):
     name = models.CharField(max_length=160, unique=True)
@@ -36,11 +47,13 @@ class Mill(models.Model):
     payment_terms_days = models.PositiveIntegerField(default=30)
     payment_risk = models.CharField(
         max_length=20,
-        choices=[("low","Low"),("medium","Medium"),("high","High")],
+        choices=[("low", "Low"), ("medium", "Medium"), ("high", "High")],
         default="medium",
     )
+
     def __str__(self):
         return self.name
+
 
 class Farm(models.Model):
     farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE, related_name="farms")
@@ -49,8 +62,10 @@ class Farm(models.Model):
     acreage = models.DecimalField(max_digits=8, decimal_places=2)
     location = models.CharField(max_length=160)
     variety = models.CharField(max_length=80, blank=True)
+
     def __str__(self):
         return self.farm_code
+
 
 class Delivery(models.Model):
     STATUS_CHOICES = [
@@ -87,10 +102,7 @@ class Delivery(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(
-                fields=["source_system", "external_reference"],
-                name="unique_delivery_external_reference",
-            )
+            models.UniqueConstraint(fields=["source_system", "external_reference"], name="unique_delivery_external_reference")
         ]
 
     @property
@@ -103,6 +115,7 @@ class Delivery(models.Model):
 
     def __str__(self):
         return self.reference
+
 
 class Receivable(models.Model):
     STATUS_CHOICES = [
@@ -122,22 +135,31 @@ class Receivable(models.Model):
     acknowledged_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="draft")
     created_at = models.DateTimeField(auto_now_add=True)
+
     @property
-    def farmer(self): return self.delivery.farmer
+    def farmer(self):
+        return self.delivery.farmer
+
     @property
-    def mill(self): return self.delivery.mill
+    def mill(self):
+        return self.delivery.mill
+
     @property
     def is_finance_locked(self):
         return hasattr(self, "assignment") and self.assignment.active
-    def __str__(self): return self.reference
+
+    def __str__(self):
+        return self.reference
+
 
 class FinanceRequest(models.Model):
     receivable = models.OneToOneField(Receivable, on_delete=models.CASCADE, related_name="finance_request")
     farmer = models.ForeignKey(Farmer, on_delete=models.PROTECT)
     requested_amount = models.DecimalField(max_digits=12, decimal_places=2)
     consent_to_share = models.BooleanField(default=False)
-    status = models.CharField(max_length=20, choices=[("open","Open"),("accepted","Accepted"),("closed","Closed")], default="open")
+    status = models.CharField(max_length=20, choices=[("open", "Open"), ("accepted", "Accepted"), ("closed", "Closed")], default="open")
     created_at = models.DateTimeField(auto_now_add=True)
+
 
 class FinanceOffer(models.Model):
     request = models.ForeignKey(FinanceRequest, on_delete=models.CASCADE, related_name="offers")
@@ -145,10 +167,11 @@ class FinanceOffer(models.Model):
     advance_amount = models.DecimalField(max_digits=12, decimal_places=2)
     finance_cost = models.DecimalField(max_digits=12, decimal_places=2)
     settlement_amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, choices=[("offered","Offered"),("accepted","Accepted"),("declined","Declined"),("disbursed","Disbursed")], default="offered")
+    status = models.CharField(max_length=20, choices=[("offered", "Offered"), ("accepted", "Accepted"), ("declined", "Declined"), ("disbursed", "Disbursed")], default="offered")
     created_at = models.DateTimeField(auto_now_add=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
     disbursed_at = models.DateTimeField(null=True, blank=True)
+
 
 class ReceivableAssignment(models.Model):
     receivable = models.OneToOneField(Receivable, on_delete=models.CASCADE, related_name="assignment")
@@ -156,6 +179,7 @@ class ReceivableAssignment(models.Model):
     assigned_to = models.ForeignKey(User, on_delete=models.PROTECT, related_name="assigned_receivables")
     assigned_at = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
+
 
 class Settlement(models.Model):
     receivable = models.OneToOneField(Receivable, on_delete=models.PROTECT, related_name="settlement")
@@ -168,8 +192,9 @@ class Settlement(models.Model):
     settled_at = models.DateTimeField(default=timezone.now)
     reference = models.CharField(max_length=80, blank=True)
 
+
 class IntegrationConnection(models.Model):
-    STATUS_CHOICES = [("planned","Planned"),("sandbox","Sandbox"),("connected","Connected"),("error","Attention needed")]
+    STATUS_CHOICES = [("planned", "Planned"), ("sandbox", "Sandbox"), ("connected", "Connected"), ("error", "Attention needed")]
     code = models.SlugField(max_length=60, unique=True)
     name = models.CharField(max_length=160)
     connection_type = models.CharField(max_length=80)
@@ -180,11 +205,14 @@ class IntegrationConnection(models.Model):
     last_sync_at = models.DateTimeField(null=True, blank=True)
     last_error = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
-    def __str__(self): return self.name
+
+    def __str__(self):
+        return self.name
+
 
 class IntegrationEvent(models.Model):
-    DIRECTION_CHOICES = [("inbound","Inbound"),("outbound","Outbound")]
-    STATUS_CHOICES = [("success","Success"),("rejected","Rejected"),("error","Error")]
+    DIRECTION_CHOICES = [("inbound", "Inbound"), ("outbound", "Outbound")]
+    STATUS_CHOICES = [("success", "Success"), ("rejected", "Rejected"), ("error", "Error")]
     connection = models.ForeignKey(IntegrationConnection, null=True, blank=True, on_delete=models.SET_NULL, related_name="events")
     direction = models.CharField(max_length=20, choices=DIRECTION_CHOICES)
     event_type = models.CharField(max_length=80)
@@ -192,8 +220,10 @@ class IntegrationEvent(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     detail = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         ordering = ["-created_at"]
+
 
 class AuditEvent(models.Model):
     actor = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
@@ -202,5 +232,6 @@ class AuditEvent(models.Model):
     object_id = models.CharField(max_length=80)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
         ordering = ["-created_at"]

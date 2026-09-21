@@ -2,6 +2,7 @@ from functools import wraps
 from django.contrib import messages
 from django.shortcuts import redirect
 
+
 def role_required(*roles):
     def decorator(view):
         @wraps(view)
@@ -9,7 +10,12 @@ def role_required(*roles):
             if not request.user.is_authenticated:
                 return redirect("login")
             profile = getattr(request.user, "profile", None)
-            if not profile or profile.role not in roles:
+            if not profile:
+                messages.error(request, "Your account is missing a Miwa360 workspace profile.")
+                return redirect("logout")
+            if profile.account_status != "active":
+                return redirect("account_pending")
+            if profile.role not in roles:
                 messages.error(request, "You do not have access to that workspace.")
                 return redirect("home")
             return view(request, *args, **kwargs)

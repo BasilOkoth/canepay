@@ -1,8 +1,11 @@
 from django.urls import path
 from . import views
+from .auth_views import account_pending, signup
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("accounts/create/", signup, name="signup"),
+    path("accounts/pending/", account_pending, name="account_pending"),
     path("farmer/", views.farmer_dashboard, name="farmer_dashboard"),
     path("farmer/receivable/<int:pk>/", views.receivable_detail, name="receivable_detail"),
     path("farmer/receivable/<int:pk>/finance/", views.request_finance, name="request_finance"),

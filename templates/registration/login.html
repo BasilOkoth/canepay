@@ -13,7 +13,7 @@
   <section class="login-story-panel">
     <div class="login-story-inner">
       <div class="login-brand-row-premium">
-        <a class="brand brand-login" href="/accounts/login/">
+        <a class="brand brand-login" href="{% url 'login' %}">
           <img src="{% static 'img/miwa360-mark.svg' %}" alt="Miwa360">
           <span>Miwa<strong>360</strong></span>
         </a>
@@ -21,92 +21,59 @@
       </div>
 
       <div class="login-story-content">
-        <span class="login-kicker">FROM CANE DELIVERY TO CASH</span>
-
-        <h1>Verified cane should not leave a farmer <em>waiting for money.</em></h1>
-
+        <span class="login-kicker">BRIDGING THE MILLER LIQUIDITY GAP</span>
+        <h1>Cane delivered. Value verified. <em>Farmers paid sooner.</em></h1>
         <p class="login-lead">
-          Miwa360 connects farmers, millers and banks / SACCOs so an approved cane delivery
-          can become trusted evidence for earlier payment.
+          When a mill has verified what it owes but cannot settle immediately, Miwa360 turns that
+          acknowledged obligation into trusted financing evidence for a bank or SACCO.
         </p>
 
         <div class="journey-grid">
-          <article class="journey-step">
-            <span class="journey-no">01</span>
-            <div><strong>Farmer delivers</strong><small>Cane reaches the mill.</small></div>
-          </article>
-          <article class="journey-step">
-            <span class="journey-no">02</span>
-            <div><strong>Mill verifies</strong><small>Weight, quality and amount due are confirmed.</small></div>
-          </article>
-          <article class="journey-step">
-            <span class="journey-no">03</span>
-            <div><strong>Bank / SACCO pays</strong><small>The farmer receives an advance against the verified obligation.</small></div>
-          </article>
-          <article class="journey-step">
-            <span class="journey-no">04</span>
-            <div><strong>Mill settles</strong><small>The financier is repaid when the mill settles the obligation.</small></div>
-          </article>
+          <article class="journey-step"><span class="journey-no">01</span><div><strong>Farmer delivers</strong><small>Cane is received and recorded by the mill.</small></div></article>
+          <article class="journey-step"><span class="journey-no">02</span><div><strong>Mill acknowledges</strong><small>Quantity, quality and amount payable are confirmed.</small></div></article>
+          <article class="journey-step"><span class="journey-no">03</span><div><strong>Financier advances</strong><small>A bank or SACCO assesses the verified receivable and can pay the farmer sooner.</small></div></article>
+          <article class="journey-step"><span class="journey-no">04</span><div><strong>Mill settles</strong><small>When the mill pays, the financier is settled and the residual goes to the farmer.</small></div></article>
         </div>
 
-        <div class="transaction-trail">
-          <span class="trail-dot"></span>
-          <span>One transaction trail</span>
-          <span class="trail-arrow">Farmer → Miller → Financier → Settlement</span>
-        </div>
+        <div class="transaction-trail"><span class="trail-dot"></span><span>One auditable transaction trail</span><span class="trail-arrow">Delivery → Receivable → Finance → Settlement</span></div>
       </div>
 
-      <div class="login-story-footer">
-        Verified delivery evidence · controlled financing · auditable settlement
-      </div>
+      <div class="login-story-footer">Verified obligations · farmer-authorised finance · controlled settlement</div>
     </div>
   </section>
 
   <section class="login-access-panel">
     <div class="login-access-card">
       <div class="secure-label-premium"><span class="secure-dot"></span> SECURE WORKSPACE</div>
-      <h2>Welcome to Miwa360</h2>
-      <p class="access-copy">Sign in with the account assigned to your role in the cane payment workflow.</p>
+      <h2>Welcome back</h2>
+      <p class="access-copy">Use your username or email to enter your Miwa360 workspace.</p>
 
-      {% if form.errors %}
-      <div class="form-alert-premium">The username or password is incorrect.</div>
-      {% endif %}
+      {% if form.errors %}<div class="form-alert-premium">We could not sign you in. Check your username/email and password.</div>{% endif %}
 
-      <form method="post" class="login-form-premium">
+      <form method="post" class="login-form-premium" novalidate>
         {% csrf_token %}
-        <label class="login-field">
-          <span>Username</span>
-          {{ form.username }}
-        </label>
-
+        <label class="login-field"><span>Username or email</span>{{ form.username }}</label>
         <label class="login-field">
           <span>Password</span>
           <div class="password-wrap">
             {{ form.password }}
             <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false">
-              <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/>
-                <circle cx="12" cy="12" r="2.8"/>
-              </svg>
-              <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 3l18 18"/>
-                <path d="M10.6 6.2A10.9 10.9 0 0 1 12 6c6 0 9.5 6 9.5 6a17.6 17.6 0 0 1-3.2 3.8"/>
-                <path d="M6.2 6.2C3.9 7.8 2.5 12 2.5 12S6 18 12 18c1.8 0 3.3-.5 4.6-1.2"/>
-              </svg>
+              <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.8"/></svg>
+              <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.2A10.9 10.9 0 0 1 12 6c6 0 9.5 6 9.5 6a17.6 17.6 0 0 1-3.2 3.8"/><path d="M6.2 6.2C3.9 7.8 2.5 12 2.5 12S6 18 12 18c1.8 0 3.3-.5 4.6-1.2"/></svg>
             </button>
           </div>
         </label>
-
         {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-
-        <button class="login-primary-btn" type="submit">
-          <span>Enter workspace</span>
-          <span class="login-btn-icon">↗</span>
-        </button>
+        <button class="login-primary-btn" type="submit"><span>Enter workspace</span><span class="login-btn-icon">↗</span></button>
       </form>
 
+      <div class="account-cta">
+        <div><strong>New to Miwa360?</strong><small>Create a real account — no demo credentials required.</small></div>
+        <a href="{% url 'signup' %}">Create account</a>
+      </div>
+
       <details class="demo-access-premium">
-        <summary><span>Demo access</span><span class="demo-plus">+</span></summary>
+        <summary><span>Competition demo access</span><span class="demo-plus">+</span></summary>
         <div class="demo-grid-premium">
           <div><b>Farmer</b><code>farmer</code><code>Demo123!</code></div>
           <div><b>Miller</b><code>mill</code><code>Demo123!</code></div>
@@ -115,7 +82,7 @@
         </div>
       </details>
 
-      <div class="login-security-note">Role-based access · auditable actions · duplicate-financing lock</div>
+      <div class="login-security-note">Role-based access · farmer consent · duplicate-financing lock · auditable settlement</div>
     </div>
   </section>
 </div>
@@ -127,13 +94,12 @@
   const toggle = document.getElementById("passwordToggle");
   const password = document.getElementById("id_password");
   if (!toggle || !password) return;
-
   toggle.addEventListener("click", function () {
-    const isVisible = password.type === "text";
-    password.type = isVisible ? "password" : "text";
-    toggle.classList.toggle("is-visible", !isVisible);
-    toggle.setAttribute("aria-pressed", String(!isVisible));
-    toggle.setAttribute("aria-label", isVisible ? "Show password" : "Hide password");
+    const visible = password.type === "text";
+    password.type = visible ? "password" : "text";
+    toggle.classList.toggle("is-visible", !visible);
+    toggle.setAttribute("aria-pressed", String(!visible));
+    toggle.setAttribute("aria-label", visible ? "Show password" : "Hide password");
   });
 })();
 </script>
