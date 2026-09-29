@@ -1,16 +1,37 @@
-# MIWA360 mill dashboard 500 fix
+# CanePay interoperability + farmer dashboard upgrade
 
-Upload these two files to the existing GitHub repository, preserving the paths:
+Upload these files to the matching paths in your GitHub repository:
 
-1. `core/mill_views.py` — NEW file
-2. `core/urls.py` — REPLACE the existing file
+- `core/models.py` — replace existing file
+- `core/forms.py` — replace existing file
+- `core/admin.py` — replace existing file
+- `core/urls.py` — replace existing file
+- `core/farmer_views.py` — NEW file
+- `core/migrations/0004_interoperability_profitability.py` — NEW migration
+- `templates/core/farmer_dashboard.html` — replace existing file
+- `templates/base.html` — replace existing file (farmer sidebar navigation)
 
-Commit the changes. Render should redeploy automatically.
+## What this upgrade adds
 
-No migration is required for this fix.
+1. Farmer delivery records with source-system traceability.
+2. Farmer payment/settlement history.
+3. Farm cost capture and profitability calculations.
+4. External identity mapping for KSB/SIMIS, mills and other systems.
+5. Structured cane quality/QBCPS-ready records.
+6. Pricing assessment/reconciliation records.
+7. Existing receivable-financing-settlement workflow remains intact.
 
-## Cause fixed
+## Deploy
 
-The old `mill_dashboard` sliced the delivery and receivable QuerySets with `[:100]` before using `.filter()` and `.exclude()` for dashboard metrics. Django raises `TypeError: Cannot filter a query once a slice has been taken.`
+After pushing to GitHub, your Render build/start process must run Django migrations. If your current Render build command already runs `python manage.py migrate`, no extra action is needed.
 
-The corrected dashboard calculates metrics from unsliced querysets, then slices only the rows passed to the template.
+Otherwise run:
+
+```bash
+python manage.py migrate
+python manage.py collectstatic --noinput
+```
+
+## Important
+
+The profitability numbers are only as complete as the expense records entered. Cane delivery revenue comes from the existing Delivery records. This release does not invent a KSB/QBCPS price; it creates structured places to receive and reconcile authoritative quality/pricing data later.

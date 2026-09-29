@@ -28,8 +28,10 @@
     <nav class="nav">
       <a class="nav-item active" href="/"><span class="nav-icon">⌂</span> Overview</a>
       {% if user.profile.role == "farmer" %}
-      <a class="nav-item" href="#receivables"><span class="nav-icon">▤</span> My payments</a>
-      <a class="nav-item" href="#financing"><span class="nav-icon">↗</span> Financing</a>
+      <a class="nav-item" href="{% url 'farmer_dashboard' %}#deliveries"><span class="nav-icon">▦</span> Deliveries</a>
+      <a class="nav-item" href="{% url 'farmer_dashboard' %}#payments"><span class="nav-icon">▤</span> Payment history</a>
+      <a class="nav-item" href="{% url 'farmer_dashboard' %}#profitability"><span class="nav-icon">◇</span> Profitability</a>
+      <a class="nav-item" href="{% url 'farmer_dashboard' %}#receivables"><span class="nav-icon">↗</span> Financing</a>
       {% elif user.profile.role == "mill" %}
       <a class="nav-item" href="#deliveries"><span class="nav-icon">▦</span> Deliveries</a>
       <a class="nav-item" href="#receivables"><span class="nav-icon">◫</span> Obligations</a>

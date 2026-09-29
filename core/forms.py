@@ -1,16 +1,22 @@
 from django import forms
-from .models import Delivery, FinanceOffer
+from .models import Delivery, FarmExpense, FinanceOffer
+
 
 class DeliveryForm(forms.ModelForm):
     class Meta:
         model = Delivery
-        fields = ["farmer","farm","mill","delivery_ticket_number","delivered_at","gross_weight_tonnes","accepted_weight_tonnes","quality_score","price_per_tonne","deductions"]
+        fields = [
+            "farmer", "farm", "mill", "delivery_ticket_number", "delivered_at",
+            "gross_weight_tonnes", "accepted_weight_tonnes", "quality_score",
+            "price_per_tonne", "deductions"
+        ]
         widgets = {"delivered_at": forms.DateTimeInput(attrs={"type": "datetime-local"})}
         labels = {
             "quality_score": "Quality / sucrose score",
             "price_per_tonne": "Price per tonne (KES)",
             "deductions": "Approved deductions (KES)",
         }
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["delivery_ticket_number"].required = False
@@ -19,15 +25,34 @@ class DeliveryForm(forms.ModelForm):
             if org:
                 self.fields["mill"].queryset = self.fields["mill"].queryset.filter(name=org)
 
+
+class FarmExpenseForm(forms.ModelForm):
+    class Meta:
+        model = FarmExpense
+        fields = ["farm", "expense_date", "category", "amount", "description", "supplier", "external_reference"]
+        widgets = {"expense_date": forms.DateInput(attrs={"type": "date"})}
+        labels = {
+            "amount": "Amount (KES)",
+            "external_reference": "Receipt / reference",
+        }
+
+    def __init__(self, *args, farmer=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if farmer is not None:
+            self.fields["farm"].queryset = farmer.farms.all().order_by("farm_code")
+
+
 class FinanceRequestForm(forms.Form):
     requested_amount = forms.DecimalField(min_value=1, decimal_places=2, max_digits=12, label="Amount you want now (KES)")
     consent_to_share = forms.BooleanField(label="I consent to share this verified delivery and mill obligation with participating banks and SACCOs.")
 
+
 class FinanceOfferForm(forms.ModelForm):
     class Meta:
         model = FinanceOffer
-        fields = ["advance_amount","finance_cost"]
-        labels = {"advance_amount":"Amount to pay farmer now (KES)","finance_cost":"Financing cost (KES)"}
+        fields = ["advance_amount", "finance_cost"]
+        labels = {"advance_amount": "Amount to pay farmer now (KES)", "finance_cost": "Financing cost (KES)"}
+
     def clean(self):
         cleaned = super().clean()
         advance = cleaned.get("advance_amount")

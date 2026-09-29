@@ -67,6 +67,37 @@ class Farm(models.Model):
         return self.farm_code
 
 
+class ExternalIdentity(models.Model):
+    """Maps CanePay records to identifiers owned by external industry systems."""
+
+    ENTITY_CHOICES = [
+        ("farmer", "Farmer"),
+        ("farm", "Farm"),
+        ("mill", "Mill"),
+    ]
+    entity_type = models.CharField(max_length=20, choices=ENTITY_CHOICES, db_index=True)
+    farmer = models.ForeignKey(Farmer, null=True, blank=True, on_delete=models.CASCADE, related_name="external_identities")
+    farm = models.ForeignKey(Farm, null=True, blank=True, on_delete=models.CASCADE, related_name="external_identities")
+    mill = models.ForeignKey(Mill, null=True, blank=True, on_delete=models.CASCADE, related_name="external_identities")
+    source_system = models.CharField(max_length=60, db_index=True)
+    identifier_type = models.CharField(max_length=60, blank=True)
+    external_identifier = models.CharField(max_length=120, db_index=True)
+    verified = models.BooleanField(default=False)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_system", "entity_type", "external_identifier"],
+                name="unique_external_identity",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.source_system}: {self.external_identifier}"
+
+
 class Delivery(models.Model):
     STATUS_CHOICES = [
         ("pending", "Pending verification"),
@@ -115,6 +146,95 @@ class Delivery(models.Model):
 
     def __str__(self):
         return self.reference
+
+
+class CaneQualityTest(models.Model):
+    """Structured QBCPS/cane-testing result linked to one delivery."""
+
+    delivery = models.OneToOneField(Delivery, on_delete=models.CASCADE, related_name="quality_test")
+    source_system = models.CharField(max_length=60, default="qbcps", db_index=True)
+    external_reference = models.CharField(max_length=120, null=True, blank=True, db_index=True)
+    pol_percent = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    brix_percent = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    fibre_percent = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    moisture_percent = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    extraneous_matter_percent = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True)
+    tested_at = models.DateTimeField(null=True, blank=True)
+    imported_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_system", "external_reference"],
+                name="unique_quality_external_reference",
+            )
+        ]
+
+    def __str__(self):
+        return f"Quality {self.delivery.reference}"
+
+
+class PricingAssessment(models.Model):
+    """Transparent pricing snapshot for a delivery, preserving the source of every assessment."""
+
+    STATUS_CHOICES = [
+        ("estimated", "Estimated"),
+        ("verified", "Verified"),
+        ("reconciled", "Reconciled"),
+        ("variance", "Variance detected"),
+    ]
+    delivery = models.OneToOneField(Delivery, on_delete=models.CASCADE, related_name="pricing_assessment")
+    source_system = models.CharField(max_length=60, default="manual")
+    pricing_reference = models.CharField(max_length=120, blank=True, db_index=True)
+    pricing_period = models.CharField(max_length=40, blank=True)
+    calculated_price_per_tonne = models.DecimalField(max_digits=12, decimal_places=2)
+    expected_gross_value = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    expected_deductions = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    expected_net_value = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    mill_declared_net_value = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="estimated")
+    notes = models.TextField(blank=True)
+    assessed_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def variance_amount(self):
+        if self.mill_declared_net_value is None:
+            return None
+        return self.mill_declared_net_value - self.expected_net_value
+
+    def __str__(self):
+        return f"Pricing {self.delivery.reference}"
+
+
+class FarmExpense(models.Model):
+    CATEGORY_CHOICES = [
+        ("land_preparation", "Land preparation"),
+        ("seed_cane", "Seed cane / planting material"),
+        ("fertiliser", "Fertiliser"),
+        ("chemicals", "Herbicides / crop protection"),
+        ("labour", "Labour"),
+        ("harvesting", "Harvesting"),
+        ("transport", "Transport"),
+        ("irrigation", "Irrigation / water"),
+        ("machinery", "Machinery / equipment"),
+        ("finance", "Finance / interest cost"),
+        ("other", "Other"),
+    ]
+    farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE, related_name="expenses")
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name="expenses")
+    expense_date = models.DateField(default=timezone.localdate, db_index=True)
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    description = models.CharField(max_length=220, blank=True)
+    supplier = models.CharField(max_length=160, blank=True)
+    external_reference = models.CharField(max_length=120, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-expense_date", "-id"]
+
+    def __str__(self):
+        return f"{self.farm.farm_code} {self.get_category_display()} {self.amount}"
 
 
 class Receivable(models.Model):

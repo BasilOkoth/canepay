@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import mill_views, views
+from . import farmer_views, mill_views, views
 from .auth_views import account_pending, signup
 
 urlpatterns = [
@@ -8,7 +8,8 @@ urlpatterns = [
     path("accounts/create/", signup, name="signup"),
     path("accounts/pending/", account_pending, name="account_pending"),
 
-    path("farmer/", views.farmer_dashboard, name="farmer_dashboard"),
+    path("farmer/", farmer_views.farmer_dashboard, name="farmer_dashboard"),
+    path("farmer/expenses/new/", farmer_views.expense_create, name="expense_create"),
     path("farmer/receivable/<int:pk>/", views.receivable_detail, name="receivable_detail"),
     path("farmer/receivable/<int:pk>/finance/", views.request_finance, name="request_finance"),
     path("farmer/offer/<int:pk>/accept/", views.accept_offer, name="accept_offer"),

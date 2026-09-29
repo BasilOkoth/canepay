@@ -1,33 +1,148 @@
 {% extends "base.html" %}
 {% block title %}Farmer • Miwa360{% endblock %}
+
+{% block extra_css %}
+<style>
+  .farmer-tabs{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 8px}.farmer-tabs a{padding:10px 14px;border:1px solid rgba(255,255,255,.12);border-radius:999px;text-decoration:none;color:inherit;font-size:13px}.farmer-tabs a:hover{border-color:#a9ef58}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0 26px}.metric-card{padding:20px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:rgba(255,255,255,.035)}.metric-card span{display:block;font-size:12px;opacity:.65;text-transform:uppercase;letter-spacing:.06em}.metric-card strong{display:block;margin-top:8px;font-size:26px}.metric-card small{display:block;margin-top:6px;opacity:.62}.metric-card.profit{border-color:rgba(169,239,88,.45);background:rgba(169,239,88,.06)}.metric-card.warn strong{color:#ffcf6e}.data-panel{margin:22px 0;padding:22px;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:rgba(255,255,255,.025)}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:15px}.panel-head h2{margin:4px 0}.panel-head p{margin:0;opacity:.65;max-width:580px}.table-wrap{overflow-x:auto}.farmer-table{width:100%;border-collapse:collapse;min-width:820px}.farmer-table th,.farmer-table td{text-align:left;padding:13px 12px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;vertical-align:top}.farmer-table th{opacity:.55;text-transform:uppercase;font-size:10px;letter-spacing:.08em}.farmer-table td strong{display:block}.subtle{opacity:.6;font-size:11px}.pill{display:inline-flex;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.07);font-size:11px}.pill.settled,.pill.reconciled{background:rgba(169,239,88,.12);color:#bdf47c}.pill.pending,.pill.draft{background:rgba(255,207,110,.12);color:#ffcf6e}.profit-positive{color:#bdf47c}.profit-negative{color:#ff8585}.source-proof{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.source-proof span{font-size:10px;padding:4px 7px;border-radius:999px;background:rgba(169,239,88,.08);color:#bdf47c}.empty-row{text-align:center!important;padding:28px!important;opacity:.6}.split-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}.cost-list{display:grid;gap:9px}.cost-item{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.07)}.cost-item:last-child{border-bottom:0}@media(max-width:1100px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.split-grid{grid-template-columns:1fr}}@media(max-width:650px){.metric-grid{grid-template-columns:1fr}.panel-head{display:block}.panel-head .primary-button{display:inline-block;margin-top:12px}}
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="hero dark-hero">
   <div>
-    <span class="eyebrow lime">FARMER PAYMENT HOME</span>
-    <h1>Your cane is delivered.<br><em>See what you are owed.</em></h1>
-    <p>Follow every verified mill obligation, payment date and early-payment option from one place.</p>
+    <span class="eyebrow lime">FARMER BUSINESS HOME</span>
+    <h1>Your cane, payments and<br><em>farm performance in one place.</em></h1>
+    <p>Trace deliveries from the mill record to settlement, understand what you were paid, and see whether your cane enterprise is profitable.</p>
   </div>
   <div class="identity-card">
     <span>VERIFIED FARMER</span>
     <strong>{{ farmer.user.get_full_name|default:farmer.user.username }}</strong>
-    <small>{{ farmer.farmer_number }}</small>
-    {% if farmer.ksb_grower_id %}<small>{{ farmer.ksb_grower_id }}</small>{% endif %}
-    <div><i></i> Active identity record</div>
+    <small>CanePay ID · {{ farmer.farmer_number }}</small>
+    {% if farmer.ksb_grower_id %}<small>KSB grower ID · {{ farmer.ksb_grower_id }}</small>{% endif %}
+    <div><i></i> Interoperable identity record</div>
   </div>
 </section>
 
-<section class="metrics three">
-  <article><span>Mill obligations outstanding</span><strong>KES {{ metrics.amount_outstanding|floatformat:0 }}</strong><small>Verified and unpaid</small></article>
-  <article class="accent"><span>Available to finance now</span><strong>KES {{ metrics.available_now|floatformat:0 }}</strong><small>Mill acknowledged</small></article>
-  <article><span>Already financed</span><strong>KES {{ metrics.financed|floatformat:0 }}</strong><small>Locked to a selected financier</small></article>
+<nav class="farmer-tabs">
+  <a href="#overview">Overview</a>
+  <a href="#deliveries">Delivery records</a>
+  <a href="#payments">Payment history</a>
+  <a href="#profitability">Farm profitability</a>
+  <a href="#receivables">Outstanding payments</a>
+</nav>
+
+<section id="overview" class="metric-grid">
+  <article class="metric-card"><span>Cane delivered</span><strong>{{ metrics.total_tonnes|floatformat:2 }} t</strong><small>Accepted cane recorded in CanePay</small></article>
+  <article class="metric-card"><span>Cane revenue</span><strong>KES {{ metrics.total_revenue|floatformat:0 }}</strong><small>Net value of recorded deliveries</small></article>
+  <article class="metric-card"><span>Outstanding</span><strong>KES {{ metrics.amount_outstanding|floatformat:0 }}</strong><small>Verified obligations not yet closed</small></article>
+  <article class="metric-card profit"><span>Net farm result</span><strong>KES {{ metrics.net_profit|floatformat:0 }}</strong><small>{{ metrics.profit_margin|floatformat:1 }}% margin from recorded costs</small></article>
 </section>
 
-<section class="section" id="receivables">
-  <div class="section-title">
-    <div><span class="eyebrow">YOUR CANE PAYMENTS</span><h2>Verified mill obligations</h2></div>
-    <p>Each card starts with a cane delivery and follows the money until settlement.</p>
+<section class="data-panel" id="deliveries">
+  <div class="panel-head">
+    <div><span class="eyebrow">DELIVERY RECORDS</span><h2>From weighbridge to mill obligation</h2><p>Each delivery retains its source system and external reference so CanePay can reconcile rather than replace mill or KSB records.</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="farmer-table">
+      <thead><tr><th>Date</th><th>Delivery</th><th>Farm / Mill</th><th>Accepted</th><th>Price / t</th><th>Gross</th><th>Deductions</th><th>Net payable</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for d in deliveries %}
+        <tr>
+          <td>{{ d.delivered_at|date:"d M Y" }}<div class="subtle">{{ d.delivered_at|date:"H:i" }}</div></td>
+          <td><strong>{{ d.reference }}</strong><div class="subtle">Ticket {{ d.delivery_ticket_number|default:"—" }}</div><div class="source-proof"><span>{{ d.get_source_system_display }}</span>{% if d.external_reference %}<span>{{ d.external_reference }}</span>{% endif %}</div></td>
+          <td><strong>{{ d.farm.farm_code }}</strong><div class="subtle">{{ d.mill.name }}</div></td>
+          <td>{{ d.accepted_weight_tonnes }} t<div class="subtle">Gross {{ d.gross_weight_tonnes }} t</div></td>
+          <td>KES {{ d.price_per_tonne|floatformat:0 }}</td>
+          <td>KES {{ d.gross_value|floatformat:0 }}</td>
+          <td>KES {{ d.deductions|floatformat:0 }}</td>
+          <td><strong>KES {{ d.amount_payable|floatformat:0 }}</strong></td>
+          <td><span class="pill {{ d.status }}">{{ d.get_status_display }}</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="9" class="empty-row">No deliveries have been recorded yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="data-panel" id="payments">
+  <div class="panel-head">
+    <div><span class="eyebrow">PAYMENT HISTORY</span><h2>Every settlement, with the money trail</h2><p>Where financing was used, CanePay separates the amount recovered by the financier from the residual amount paid to the farmer.</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="farmer-table">
+      <thead><tr><th>Paid</th><th>Settlement</th><th>Delivery</th><th>Mill payment</th><th>To financier</th><th>To farmer</th><th>Destination</th></tr></thead>
+      <tbody>
+      {% for s in settlements %}
+        <tr>
+          <td>{{ s.settled_at|date:"d M Y" }}<div class="subtle">{{ s.settled_at|date:"H:i" }}</div></td>
+          <td><strong>{{ s.reference|default:"—" }}</strong></td>
+          <td><strong>{{ s.receivable.delivery.reference }}</strong><div class="subtle">{{ s.receivable.delivery.mill.name }}</div></td>
+          <td>KES {{ s.amount_received|floatformat:0 }}</td>
+          <td>KES {{ s.amount_to_financier|floatformat:0 }}</td>
+          <td><strong>KES {{ s.amount_to_farmer|floatformat:0 }}</strong></td>
+          <td>{{ s.payment_destination|default:"Farmer" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="empty-row">No settlements have been recorded yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="data-panel" id="profitability">
+  <div class="panel-head">
+    <div><span class="eyebrow">FARM PROFITABILITY</span><h2>Is the cane enterprise actually making money?</h2><p>Revenue comes from recorded cane deliveries. Costs come from farm expense records entered by the farmer or, later, imported from interoperable systems.</p></div>
+    <a class="primary-button" href="{% url 'expense_create' %}">Add farm cost <span>+</span></a>
   </div>
 
+  <div class="metric-grid">
+    <article class="metric-card"><span>Total revenue</span><strong>KES {{ metrics.total_revenue|floatformat:0 }}</strong></article>
+    <article class="metric-card warn"><span>Production costs</span><strong>KES {{ metrics.total_expenses|floatformat:0 }}</strong></article>
+    <article class="metric-card profit"><span>Net profit / loss</span><strong>KES {{ metrics.net_profit|floatformat:0 }}</strong><small>{{ metrics.profit_margin|floatformat:1 }}% margin</small></article>
+    <article class="metric-card"><span>Profit per tonne</span><strong>KES {{ metrics.profit_per_tonne|floatformat:0 }}</strong><small>Profit per acre: KES {{ metrics.profit_per_acre|floatformat:0 }}</small></article>
+  </div>
+
+  <div class="split-grid">
+    <div class="table-wrap">
+      <table class="farmer-table">
+        <thead><tr><th>Farm</th><th>Acres</th><th>Tonnes</th><th>Revenue</th><th>Costs</th><th>Profit / loss</th><th>Profit / acre</th></tr></thead>
+        <tbody>
+        {% for row in farm_rows %}
+          <tr>
+            <td><strong>{{ row.farm.farm_code }}</strong><div class="subtle">{{ row.farm.location }}</div></td>
+            <td>{{ row.farm.acreage }}</td>
+            <td>{{ row.tonnes|floatformat:2 }}</td>
+            <td>KES {{ row.revenue|floatformat:0 }}</td>
+            <td>KES {{ row.cost|floatformat:0 }}</td>
+            <td><strong>KES {{ row.profit|floatformat:0 }}</strong></td>
+            <td>KES {{ row.profit_per_acre|floatformat:0 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="empty-row">No farms are attached to this farmer.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <span class="eyebrow">RECENT COSTS</span>
+      <div class="cost-list">
+      {% for e in expenses %}
+        <div class="cost-item"><div><strong>{{ e.get_category_display }}</strong><div class="subtle">{{ e.farm.farm_code }} · {{ e.expense_date|date:"d M Y" }}{% if e.description %} · {{ e.description }}{% endif %}</div></div><strong>KES {{ e.amount|floatformat:0 }}</strong></div>
+      {% empty %}
+        <p class="subtle">No farm costs recorded. Add costs to make the profitability figures meaningful.</p>
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="data-panel" id="receivables">
+  <div class="panel-head">
+    <div><span class="eyebrow">OUTSTANDING PAYMENTS & FINANCING</span><h2>Verified mill obligations</h2><p>Each obligation begins with a delivery and follows the money until settlement.</p></div>
+  </div>
   <div class="card-grid">
     {% for r in receivables %}
     <article class="receivable-card">
@@ -42,7 +157,7 @@
         <div><span>Payment due</span><strong>{{ r.due_date|date:"d M Y" }}</strong></div>
       </div>
       <div class="proof-row">
-        <span class="done">Delivery</span><span class="done">Weight</span><span class="done">Quality</span>
+        <span class="done">Delivery</span><span class="done">Weight</span><span class="done">Price</span>
         <span class="{% if r.mill_acknowledged %}done{% else %}waiting{% endif %}">Mill obligation</span>
       </div>
       <div class="card-actions">
